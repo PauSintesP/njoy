@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_tickets"
+        android:icon="@drawable/ic_tickets"
+        android:title="Entradas" />
+    <item
+        android:id="@+id/nav_Main"
+        android:icon="@drawable/ic_home"
+        android:title="Eventos" />
+    <item
+        android:id="@+id/nav_history"
+        android:icon="@drawable/ic_history"
+        android:title="Historial" />
+</menu>
