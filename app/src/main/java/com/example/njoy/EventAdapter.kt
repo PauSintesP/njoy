@@ -56,12 +56,10 @@ class EventAdapter(
                 // Solo mostrar la hora
                 timeView.text = dateTime.format(timeFormatter)
 
-                // Formato especial para el overlay de fecha
                 dayView.text = dateTime.format(dayFormatter)
                 monthView.text = dateTime.format(monthFormatter).uppercase()
 
             } catch (e: Exception) {
-                // Fallback si hay error en el formato
                 val parts = event.fechayhora.split("T")
                 timeView.text = if (parts.size > 1) parts[1].substring(0, 5) else "??:??"
 

@@ -191,21 +191,23 @@ class EventActivity : BaseActivity() {
                 tvEventDate.text = formattedDate
                 tvEventTime.text = formattedTime
             } else {
-                // Para versiones anteriores, dividir manualmente
                 fallbackDateFormatting(dateTimeOriginal)
             }
         } catch (e: Exception) {
-            // Si falla el parsing, intentar método alternativo
             fallbackDateFormatting(dateTimeOriginal)
             Log.e("EventActivity", "Error al formatear fecha: ${e.message}")
         }
 
 
-        tvEventLocation.text = "${event.recinto}, ${fetchLocalidadName(event.localidad_id)}"
+        CoroutineScope(Dispatchers.IO).launch {
+            val localidadName = fetchLocalidadName(event.localidad_id)
+            withContext(Dispatchers.Main) {
+                tvEventLocation.text = "${event.recinto}, $localidadName"
+            }
+        }
         tvAvailableSeats.text = "Entradas disponibles: ${event.plazas}"
         tvEventDescription.text = event.descripcion
 
-        // Establecer precio basado en la categoría
         pricePerTicket = CATEGORY_PRICE_MAP[event.categoria_precio] ?: 15.0
 
         val df = DecimalFormat("0.00")
@@ -213,19 +215,26 @@ class EventActivity : BaseActivity() {
 
         updateTicketCountUI()
 
-        // Deshabilitar el botón de incremento si no hay suficientes entradas
         if (event.plazas <= 1) {
             btnIncrease.isEnabled = false
         }
 
-        // Deshabilitar botón de compra si no hay entradas disponibles
         btnBuyTickets.isEnabled = event.plazas > 0
     }
 
-    private fun fetchLocalidadName(localidadId: Int): String {
-        // Idealmente debería obtener el nombre de la localidad de la API
-        // Por ahora solo devolvemos un valor genérico
-        return "Localidad $localidadId"
+    private suspend fun fetchLocalidadName(localidadId: Int): String {
+        try {
+            val response = ApiClient.apiService.getLocalidad(localidadId)
+            if (response.isSuccessful && response.body() != null) {
+                return response.body()!!.ciudad
+            } else {
+                Log.e("EventActivity", "Error al obtener localidad: ${response.code()}")
+                return "Localidad desconocida"
+            }
+        } catch (e: Exception) {
+            Log.e("EventActivity", "Error en fetchLocalidadName: ${e.message}")
+            return "Localidad desconocida"
+        }
     }
 
     private fun updateTicketCountUI() {
@@ -235,12 +244,10 @@ class EventActivity : BaseActivity() {
         val totalPrice = pricePerTicket * ticketCount
         tvTotalPrice.text = "Precio total: ${df.format(totalPrice)}€"
 
-        // Verificar si se puede incrementar más
         if (::currentEvent.isInitialized) {
             btnIncrease.isEnabled = ticketCount < currentEvent.plazas
         }
 
-        // Verificar si se puede decrementar más
         btnDecrease.isEnabled = ticketCount > 1
     }
 
@@ -250,26 +257,24 @@ class EventActivity : BaseActivity() {
     }
     private fun fallbackDateFormatting(dateTimeStr: String) {
         try {
-            // Dividir por T para separar fecha y hora
             val parts = dateTimeStr.split("T")
 
             if (parts.size == 2) {
-                // Extraer hora (los primeros 5 caracteres: HH:mm)
+
                 val time = parts[1].substring(0, 5)
                 tvEventTime.text = time
 
-                // Procesar la fecha (YYYY-MM-DD)
                 val dateParts = parts[0].split("-")
                 if (dateParts.size == 3) {
                     val year = dateParts[0]
                     val monthNum = dateParts[1].toInt()
                     val day = dateParts[2]
 
-                    // Array de nombres de mes abreviados
+
                     val months = arrayOf("Ene", "Feb", "Mar", "Abr", "May", "Jun",
                         "Jul", "Ago", "Sep", "Oct", "Nov", "Dic")
 
-                    // Formato: día mes año (ej: "15 Jul 2025")
+
                     val monthName = if (monthNum in 1..12) months[monthNum-1] else "???"
                     val formattedDate = "$day $monthName $year"
                     tvEventDate.text = formattedDate
@@ -277,12 +282,11 @@ class EventActivity : BaseActivity() {
                     tvEventDate.text = parts[0]
                 }
             } else {
-                // Si no hay separador T, mostrar el original
+
                 tvEventDate.text = dateTimeStr
                 tvEventTime.text = ""
             }
         } catch (e: Exception) {
-            // En caso de cualquier error, mostrar el original
             tvEventDate.text = dateTimeStr
             tvEventTime.text = ""
         }

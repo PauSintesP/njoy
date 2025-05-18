@@ -41,7 +41,6 @@ class EventDeleteActivity : AppCompatActivity() {
         tvEmptyView = findViewById(R.id.tvEmptyView)
         btnBack = findViewById(R.id.btnBack)
 
-        // Configurar el RecyclerView con un LinearLayout
         recyclerViewEventos.layoutManager = LinearLayoutManager(this)
     }
 

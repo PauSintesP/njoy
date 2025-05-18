@@ -36,11 +36,10 @@ class EventCreateActivity : AppCompatActivity() {
     private lateinit var btnBack: Button
     private lateinit var progressBar: ProgressBar
 
-    // Data for spinners
     private val localidades = mutableListOf<LocalidadResponse>()
     private val generos = mutableListOf<GeneroResponse>()
 
-    // Selected date and time
+    // Fehcha y hora seleccionadas
     private var selectedYear = 0
     private var selectedMonth = 0
     private var selectedDay = 0
@@ -80,7 +79,6 @@ class EventCreateActivity : AppCompatActivity() {
     }
 
     private fun setupSpinners() {
-        // Setup tipo evento spinner
         val tipoEventoAdapter = ArrayAdapter.createFromResource(
             this,
             R.array.tipos_evento,
@@ -89,7 +87,6 @@ class EventCreateActivity : AppCompatActivity() {
         tipoEventoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerTipoEvento.adapter = tipoEventoAdapter
 
-        // Setup precio spinner
         val precioCategoriaAdapter = ArrayAdapter.createFromResource(
             this,
             R.array.categorias_precio,
@@ -98,7 +95,6 @@ class EventCreateActivity : AppCompatActivity() {
         precioCategoriaAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerPrecio.adapter = precioCategoriaAdapter
 
-        // Los spinners de localidad y género se configurarán después de obtener los datos
     }
 
     private fun setupListeners() {
@@ -238,7 +234,6 @@ class EventCreateActivity : AppCompatActivity() {
     private fun validateFields(): Boolean {
         var isValid = true
 
-        // Validar que los campos no estén vacíos
         if (etNombreEvento.text.toString().trim().isEmpty()) {
             etNombreEvento.error = "El nombre es obligatorio"
             isValid = false
@@ -295,7 +290,6 @@ class EventCreateActivity : AppCompatActivity() {
         val precioTexto = spinnerPrecio.selectedItem.toString()
         val categoriaPrecio = precioTexto.replace("€", "").trim()
 
-        // Crear fecha y hora en formato ISO
         val fechaHora = String.format(
             "%04d-%02d-%02dT%02d:%02d:00",
             selectedYear,
@@ -305,7 +299,7 @@ class EventCreateActivity : AppCompatActivity() {
             selectedMinute
         )
 
-        // Crear objeto de solicitud
+
         val eventRequest = CreateEventRequest(
             nombre = etNombreEvento.text.toString().trim(),
             descripcion = etDescripcion.text.toString().trim(),
@@ -330,7 +324,7 @@ class EventCreateActivity : AppCompatActivity() {
 
                     if (response.isSuccessful) {
                         showToast("¡Evento creado correctamente!")
-                        finish() // Volver a la actividad anterior
+                        finish()
                     } else {
                         showToast("Error al crear evento: ${response.code()}")
                     }

@@ -31,6 +31,8 @@ object ApiClient {
 interface ApiService {
     @GET("localidad/")
     suspend fun getLocalidades(): Response<List<DataClasesApi.LocalidadResponse>>
+    @GET("localidad/{id}")
+    suspend fun getLocalidad(@Path("id") id: Int): Response<DataClasesApi.LocalidadResponse>
     @POST("localidad/")
     suspend fun createLocalidad(@Body ciudad: String): Response<DataClasesApi.LocalidadResponse>
     @GET("genero/")
