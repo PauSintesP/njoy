@@ -21,6 +21,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import android.widget.ImageView
+import com.example.njoy.DataClasesApi.Event
 
 class PaymentMethodActivity : BaseActivity() {
 

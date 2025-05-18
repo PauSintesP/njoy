@@ -1,3 +1,25 @@
 <resources>
     <string name="app_name">nJoY</string>
+    <string-array name="tipos_evento">
+        <item>Concierto</item>
+        <item>Festival</item>
+        <item>Teatro</item>
+        <item>Cine</item>
+        <item>Exposición</item>
+        <item>Deportivo</item>
+        <item>Otro</item>
+    </string-array>
+
+    <string-array name="categorias_precio">
+        <item>5€</item>
+        <item>10€</item>
+        <item>15€</item>
+        <item>20€</item>
+        <item>25€</item>
+        <item>30€</item>
+        <item>50€</item>
+        <item>75€</item>
+        <item>100€</item>
+        <item>Gratuito</item>
+    </string-array>
 </resources>

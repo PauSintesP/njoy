@@ -116,7 +116,7 @@
             android:textColor="@android:color/black"
             app:layout_constraintTop_toBottomOf="@id/event_location"
             app:layout_constraintStart_toStartOf="parent"
-            tools:text="Plazas disponibles: 100" />
+            tools:text="Entradas Disponibles: 100" />
 
         <TextView
             android:id="@+id/event_price"

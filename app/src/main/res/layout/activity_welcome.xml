@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/blue"
+    android:background="@color/blue_light"
     tools:context=".WelcomeActivity">
 
     <ImageView
@@ -22,7 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="¡Bienvenido a NJOY!"
-        android:textColor="@color/white"
+        android:textColor="@color/green_dark"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/tvSubtitle"
@@ -35,7 +35,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Descubre los mejores eventos"
-        android:textColor="@color/white"
+        android:textColor="@color/green"
         android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/btnLogin"
         app:layout_constraintEnd_toEndOf="parent"
@@ -66,7 +66,7 @@
         android:layout_marginStart="32dp"
         android:layout_marginEnd="32dp"
         android:layout_marginBottom="32dp"
-        android:backgroundTint="@color/blue"
+        android:backgroundTint="@color/blue_dark"
         android:elevation="4dp"
         android:text="Registrarse"
         android:textAllCaps="false"

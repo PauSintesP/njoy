@@ -8,6 +8,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
+import com.example.njoy.DataClasesApi.Event
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -86,7 +87,7 @@ class EventAdapter(
             }
 
             locationView.text = "Ubicación: ${event.recinto}"
-            availableSeatsView.text = "Plazas disponibles: ${event.plazas}"
+            availableSeatsView.text = "Entradas Disponibles: ${event.plazas}"
 
             // Mostrar precio real, analizando si es un número o categoría
             priceView.text = getPriceLabel(event.categoria_precio)

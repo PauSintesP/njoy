@@ -133,7 +133,7 @@
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:src="@drawable/ic_ticket"
+                        android:src="@drawable/ic_tickets"
                         android:contentDescription="Icono de tickets"
                         app:tint="@android:color/white"/>
 

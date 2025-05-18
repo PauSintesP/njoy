@@ -77,6 +77,17 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun loginUser(email: String, contrasena: String) {
+        // Verificar si son las credenciales de administrador
+        if (email == "admin@example.com" && contrasena == "12345678") {
+            // Acceso de administrador - redirigir a AdminMainActivity
+            val intent = Intent(this, AdminMainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
+            return
+        }
+
+        // Si no son credenciales de administrador, continuar con la autenticación normal
         showLoading(true)
 
         CoroutineScope(Dispatchers.IO).launch {

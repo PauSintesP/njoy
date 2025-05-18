@@ -25,9 +25,9 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var etEmail: TextInputEditText
     private lateinit var etBirthDate: TextInputEditText
     private lateinit var etPassword: TextInputEditText
+    private lateinit var etConfirmPassword: TextInputEditText
     private lateinit var btnRegister: Button
     private lateinit var progressBar: ProgressBar
-    private val calendar = Calendar.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,47 +43,77 @@ class RegisterActivity : AppCompatActivity() {
         etEmail = findViewById(R.id.etEmail)
         etBirthDate = findViewById(R.id.etBirthDate)
         etPassword = findViewById(R.id.etPassword)
+        etConfirmPassword = findViewById(R.id.etConfirmPassword)
         btnRegister = findViewById(R.id.btnRegister)
         progressBar = findViewById(R.id.progressBar)
     }
 
     private fun setupListeners() {
-        etBirthDate.setOnClickListener {
-            showDatePickerDialog()
-        }
-
         btnRegister.setOnClickListener {
             val username = etUsername.text.toString().trim()
             val fullName = etFullName.text.toString().trim()
             val email = etEmail.text.toString().trim()
             val birthDate = etBirthDate.text.toString().trim()
             val password = etPassword.text.toString().trim()
+            val confirmPassword = etConfirmPassword.text.toString().trim()
 
-            if (validateInputs(username, fullName, email, birthDate, password)) {
+            if (validateInputs(username, fullName, email, birthDate, password, confirmPassword)) {
                 registerUser(username, fullName, email, birthDate, password)
             }
         }
+
+        // Añadir listener para mostrar el DatePicker al hacer clic en el campo
+        etBirthDate.setOnClickListener {
+            showDatePickerDialog()
+        }
+
+        // También es buena idea hacer el campo no editable directamente
+        etBirthDate.isFocusable = false
     }
 
     private fun showDatePickerDialog() {
-        val dateSetListener = DatePickerDialog.OnDateSetListener { _, year, month, dayOfMonth ->
-            calendar.set(Calendar.YEAR, year)
-            calendar.set(Calendar.MONTH, month)
-            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
-            updateBirthDateField()
+        val calendar = Calendar.getInstance()
+
+        // Si ya hay una fecha en el campo, intentar usarla
+        val dateString = etBirthDate.text.toString()
+        if (dateString.isNotEmpty()) {
+            try {
+                val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val date = sdf.parse(dateString)
+                if (date != null) {
+                    calendar.time = date
+                }
+            } catch (e: Exception) {
+                // Si hay error de formato, usar fecha actual
+            }
         }
 
-        DatePickerDialog(
-            this, dateSetListener,
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        ).show()
-    }
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH)
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
 
-    private fun updateBirthDateField() {
-        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) // Formato esperado por el servidor
-        etBirthDate.setText(sdf.format(calendar.time))
+        val datePickerDialog = DatePickerDialog(
+            this,
+            { _, selectedYear, selectedMonth, selectedDay ->
+                // Formatear la fecha seleccionada como YYYY-MM-DD
+                val selectedDate = Calendar.getInstance()
+                selectedDate.set(selectedYear, selectedMonth, selectedDay)
+
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val formattedDate = dateFormat.format(selectedDate.time)
+
+                // Actualizar el campo con la fecha formateada
+                etBirthDate.setText(formattedDate)
+            },
+            year,
+            month,
+            day
+        )
+
+        // Establecer fecha máxima como hoy (para no permitir fechas futuras)
+        datePickerDialog.datePicker.maxDate = System.currentTimeMillis()
+
+        datePickerDialog.show()
     }
 
     private fun validateInputs(
@@ -91,22 +121,26 @@ class RegisterActivity : AppCompatActivity() {
         fullName: String,
         email: String,
         birthDate: String,
-        password: String
+        password: String,
+        confirmPassword: String
     ): Boolean {
         var isValid = true
 
         if (username.isEmpty()) {
-            etUsername.error = "Nombre de usuario requerido"
+            etUsername.error = "El nombre de usuario es requerido"
+            isValid = false
+        } else if (username.length < 3) {
+            etUsername.error = "El nombre de usuario debe tener al menos 3 caracteres"
             isValid = false
         }
 
         if (fullName.isEmpty()) {
-            etFullName.error = "Nombre completo requerido"
+            etFullName.error = "El nombre completo es requerido"
             isValid = false
         }
 
         if (email.isEmpty()) {
-            etEmail.error = "Email requerido"
+            etEmail.error = "El email es requerido"
             isValid = false
         } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             etEmail.error = "Email inválido"
@@ -114,56 +148,78 @@ class RegisterActivity : AppCompatActivity() {
         }
 
         if (birthDate.isEmpty()) {
-            etBirthDate.error = "Fecha de nacimiento requerida"
+            etBirthDate.error = "La fecha de nacimiento es requerida"
+            isValid = false
+        } else if (!isValidDateFormat(birthDate)) {
+            etBirthDate.error = "Formato inválido. Usar: YYYY-MM-DD"
             isValid = false
         }
 
         if (password.isEmpty()) {
-            etPassword.error = "Contraseña requerida"
+            etPassword.error = "La contraseña es requerida"
             isValid = false
         } else if (password.length < 6) {
             etPassword.error = "La contraseña debe tener al menos 6 caracteres"
             isValid = false
         }
 
+        if (confirmPassword.isEmpty()) {
+            etConfirmPassword.error = "Confirme su contraseña"
+            isValid = false
+        } else if (password != confirmPassword) {
+            etConfirmPassword.error = "Las contraseñas no coinciden"
+            isValid = false
+        }
+
         return isValid
     }
 
-    private fun registerUser(
-        username: String,
-        fullName: String,
-        email: String,
-        birthDate: String,
-        contrasena: String
-    ) {
+    private fun isValidDateFormat(dateStr: String): Boolean {
+        return try {
+            val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            format.isLenient = false
+            format.parse(dateStr)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun registerUser(username: String, fullName: String, email: String, birthDate: String, password: String) {
         showLoading(true)
+
+        val registerRequest = RegisterRequest(
+            user = username,
+            ncompleto = fullName,
+            email = email,
+            fnacimiento = birthDate,
+            contrasena = password
+        )
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val request = RegisterRequest(username, fullName, email, birthDate, contrasena)
-                val response = ApiClient.apiService.register(request)
+                val response = ApiClient.apiService.register(registerRequest)
 
                 withContext(Dispatchers.Main) {
                     showLoading(false)
 
                     if (response.isSuccessful) {
-                        response.body()?.let {
-                            // Guardar la sesión del usuario recién registrado
-                            val userId = it.user_id ?: 0
-                            if (userId > 0) {
-                                SessionManager.login(this@RegisterActivity, email, userId, fullName)
+                        response.body()?.let { userData ->
 
-                                // Redirigir directamente a MainActivity
-                                val intent = Intent(this@RegisterActivity, MainActivity::class.java)
-                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                                startActivity(intent)
-                                finish()
-                            } else {
-                                showError("No se pudo obtener ID de usuario")
-                            }
-                        } ?: showError("Respuesta inválida del servidor")
+                            SessionManager.login(
+                                this@RegisterActivity,
+                                userData.email,
+                                userData.id,
+                                userData.user
+                            )
+                            Toast.makeText(this@RegisterActivity, "Registro exitoso", Toast.LENGTH_SHORT).show()
+                            startMainActivity()
+                        } ?: showError("Error: Respuesta inválida del servidor")
                     } else {
-                        showError("Error ${response.code()}: ${response.message()}")
+                        when (response.code()) {
+                            409 -> showError("Este usuario o email ya está registrado")
+                            else -> showError("Error ${response.code()}: ${response.message()}")
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -182,5 +238,12 @@ class RegisterActivity : AppCompatActivity() {
 
     private fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun startMainActivity() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 }
