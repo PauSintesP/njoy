@@ -208,7 +208,32 @@ class EventActivity : BaseActivity() {
         tvAvailableSeats.text = "Entradas disponibles: ${event.plazas}"
         tvEventDescription.text = event.descripcion
 
-        pricePerTicket = CATEGORY_PRICE_MAP[event.categoria_precio] ?: 15.0
+        try {
+            // Convertir directamente el string a Double
+            pricePerTicket = event.categoria_precio.toDouble()
+            Log.d("EventActivity", "Precio obtenido: $pricePerTicket€ de categoria: ${event.categoria_precio}")
+        } catch (e: NumberFormatException) {
+            // Si falla la conversión, intentar limpiar el string
+            Log.e("EventActivity", "Error al convertir precio: ${event.categoria_precio}")
+
+            // Limpiar posibles caracteres no numéricos
+            val cleanedPrice = event.categoria_precio.filter { it.isDigit() || it == '.' || it == ',' }
+                .replace(',', '.')
+
+            try {
+                pricePerTicket = cleanedPrice.toDouble()
+            } catch (e: Exception) {
+                // Si todo falla, mantener un valor por defecto
+                pricePerTicket = 15.0
+                Log.e("EventActivity", "Usando precio por defecto: 15.0€")
+            }
+        }
+
+        val dformat = DecimalFormat("0.00")
+        tvEventPrice.text = "Precio por persona: ${dformat.format(pricePerTicket)}€"
+
+        // Actualizar precio total
+        updateTicketCountUI()
 
         val df = DecimalFormat("0.00")
         tvEventPrice.text = "Precio por persona: ${df.format(pricePerTicket)}€"
