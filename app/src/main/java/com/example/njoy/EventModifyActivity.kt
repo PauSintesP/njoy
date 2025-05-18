@@ -382,7 +382,7 @@ class EventModifyActivity : AppCompatActivity() {
                 plazas = etPlazas.text.toString().toInt(),
                 fechayhora = selectedDateTimeString,
                 tipo = spinnerTipoEvento.selectedItem.toString(),
-                categoria_precio = categoriaPrecio, // Ahora utilizamos el valor sin el símbolo €
+                categoria_precio = categoriaPrecio,
                 organizador_dni = etDniOrganizador.text.toString(),
                 genero_id = generoId,
                 imagen = etImagenUrl.text.toString()

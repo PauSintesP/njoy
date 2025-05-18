@@ -42,7 +42,6 @@ class EscanearActivity : AppCompatActivity() {
         private const val TAG = "EscanearActivity"
     }
 
-    // Vistas
     private lateinit var eventSelectionLayout: View
     private lateinit var scannerLayout: View
     private lateinit var rvEvents: RecyclerView
@@ -64,7 +63,6 @@ class EscanearActivity : AppCompatActivity() {
     private lateinit var cameraExecutor: ExecutorService
     private var cameraProvider: ProcessCameraProvider? = null
 
-    // Variables de estado
     private var selectedEvent: Event? = null
     private var isScanning = false
 
