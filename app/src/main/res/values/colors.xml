@@ -1,31 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Colores principales -->
-    <color name="blue">#C3EBFF</color>
-    <color name="blue_light">#E6F5FF</color>
-    <color name="blue_dark">#0D47A1</color>
+    <!-- Primary Colors - matching web design -->
+    <color name="primary">#8b5cf6</color>
+    <color name="primary_color">#8b5cf6</color>
+    <color name="primary_dark">#7c3aed</color>
+    <color name="accent">#ec4899</color>
+    <color name="secondary_color">#ec4899</color>
 
-    <color name="green">#45C4B0</color>
-    <color name="green_light">#7FDED0</color>
-    <color name="green_dark">#00968B</color>
+    <!-- Background Colors - dark theme like web -->
+    <color name="bg_dark">#0a0a0c</color>
+    <color name="bg_card">#16161a</color>
+    <color name="bg_card_hover">#1c1c21</color>
+    
+    <!-- Text Colors -->
+    <color name="text_main">#ffffff</color>
+    <color name="text_muted">#a1a1aa</color>
+    <color name="text_primary">#ffffff</color>
+    <color name="text_secondary">#a1a1aa</color>
+    <color name="text_disabled">#71717a</color>
+    
+    <!-- Border & Glass -->
+    <color name="border">#27272a</color>
+    <color name="glass_bg">#B316161a</color> <!-- 70% opacity -->
+    <color name="glass_border">#1affffff</color> <!-- 10% white opacity -->
+    
+    <!-- State Colors -->
+    <color name="success">#22c55e</color>
+    <color name="error">#ef4444</color>
+    <color name="warning">#f59e0b</color>
+    <color name="price_accent">#22c55e</color>
 
-    <!-- Colores destacados -->
-    <color name="price_background">#FFD700</color>
-    <color name="price_accent">#FF8F00</color>
-
-    <!-- Colores secundarios -->
-    <color name="primary_color">#6200EE</color>
-    <color name="secondary_color">#03DAC6</color>
-
-    <!-- Colores de estado -->
-    <color name="success">#4CAF50</color>
-    <color name="error">#F44336</color>
-    <color name="warning">#FFC107</color>
-
-    <!-- Colores de texto -->
-    <color name="text_primary">#212121</color>
-    <color name="text_secondary">#757575</color>
-    <color name="text_disabled">#9E9E9E</color>
+    <!-- Legacy colors for backwards compatibility -->
+    <color name="blue">#8b5cf6</color>
+    <color name="blue_light">#0a0a0c</color>
+    <color name="blue_dark">#7c3aed</color>
+    <color name="green">#8b5cf6</color>
+    <color name="green_light">#a78bfa</color>
+    <color name="green_dark">#7c3aed</color>
+    
+    <!-- Basic colors -->
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+    
+    <!-- Scanner UI specific -->
+    <color name="background_dark">#0a0a0c</color>
+    <color name="white_alpha_70">#B3FFFFFF</color>
 </resources>

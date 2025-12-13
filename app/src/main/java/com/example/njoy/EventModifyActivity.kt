@@ -115,7 +115,7 @@ class EventModifyActivity : AppCompatActivity() {
     private fun fetchLocalidades() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = ApiClient.apiService.getLocalidades()
+                val response = ApiClient.getApiService(this@EventModifyActivity).getLocalidades()
                 if (response.isSuccessful && response.body() != null) {
                     localidades.clear()
                     localidades.addAll(response.body()!!)
@@ -146,7 +146,7 @@ class EventModifyActivity : AppCompatActivity() {
     private fun fetchGeneros() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = ApiClient.apiService.getGeneros()
+                val response = ApiClient.getApiService(this@EventModifyActivity).getGeneros()
                 if (response.isSuccessful && response.body() != null) {
                     generos.clear()
                     generos.addAll(response.body()!!)
@@ -232,7 +232,7 @@ class EventModifyActivity : AppCompatActivity() {
         showLoading(true)
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = ApiClient.apiService.getEvento(eventId)
+                val response = ApiClient.getApiService(this@EventModifyActivity).getEvento(eventId)
                 withContext(Dispatchers.Main) {
                     showLoading(false)
                     if (response.isSuccessful && response.body() != null) {
@@ -262,8 +262,8 @@ class EventModifyActivity : AppCompatActivity() {
         etDescripcion.setText(event.descripcion)
         etRecinto.setText(event.recinto)
         etPlazas.setText(event.plazas.toString())
-        etDniOrganizador.setText(event.organizador_dni)
-        etImagenUrl.setText(event.imagen)
+        etDniOrganizador.setText(event.organizador_dni ?: "")
+        etImagenUrl.setText(event.imagen ?: "")
 
         // Seleccionar tipo de evento en spinner
         val tiposEventoAdapter = spinnerTipoEvento.adapter as ArrayAdapter<String>
@@ -274,14 +274,18 @@ class EventModifyActivity : AppCompatActivity() {
 
         // Seleccionar categoría de precio
         val categoriasPrecioAdapter = spinnerPrecio.adapter as ArrayAdapter<String>
+        val targetPrice = event.precio ?: 0.0
         val categoriaPrecioPosition = (0 until categoriasPrecioAdapter.count)
-            .firstOrNull { categoriasPrecioAdapter.getItem(it) == event.categoria_precio }
-            ?: 0
+            .firstOrNull { index ->
+                val item = categoriasPrecioAdapter.getItem(index) ?: ""
+                val itemPrice = item.replace("€", "").trim().toDoubleOrNull() ?: -1.0
+                itemPrice == targetPrice
+            } ?: 0
         spinnerPrecio.setSelection(categoriaPrecioPosition)
 
         // Intentar seleccionar localidad y género
-        selectLocalidadInSpinner(event.localidad_id)
-        selectGeneroInSpinner(event.genero_id)
+        event.localidad_id?.let { selectLocalidadInSpinner(it) }
+        event.genero_id?.let { selectGeneroInSpinner(it) }
 
         // Configurar fecha y hora
         try {
@@ -300,8 +304,8 @@ class EventModifyActivity : AppCompatActivity() {
         }
     }
 
-    private fun selectLocalidadInSpinner(localidadId: Int) {
-        if (localidades.isNotEmpty()) {
+    private fun selectLocalidadInSpinner(localidadId: Int?) {
+        if (localidades.isNotEmpty() && localidadId != null) {
             val position = localidades.indexOfFirst { it.id == localidadId }
             if (position >= 0) {
                 spinnerLocalidad.setSelection(position)
@@ -309,8 +313,8 @@ class EventModifyActivity : AppCompatActivity() {
         }
     }
 
-    private fun selectGeneroInSpinner(generoId: Int) {
-        if (generos.isNotEmpty()) {
+    private fun selectGeneroInSpinner(generoId: Int?) {
+        if (generos.isNotEmpty() && generoId != null) {
             val position = generos.indexOfFirst { it.id == generoId }
             if (position >= 0) {
                 spinnerGenero.setSelection(position)
@@ -372,7 +376,7 @@ class EventModifyActivity : AppCompatActivity() {
 
             // Obtener precio seleccionado y eliminar el símbolo €
             val precioTexto = spinnerPrecio.selectedItem.toString()
-            val categoriaPrecio = precioTexto.replace("€", "").trim()
+            val precioVal = precioTexto.replace("€", "").trim().toDoubleOrNull() ?: 0.0
 
             val updateRequest = EventUpdateRequest(
                 nombre = etNombreEvento.text.toString(),
@@ -382,19 +386,17 @@ class EventModifyActivity : AppCompatActivity() {
                 plazas = etPlazas.text.toString().toInt(),
                 fechayhora = selectedDateTimeString,
                 tipo = spinnerTipoEvento.selectedItem.toString(),
-                categoria_precio = categoriaPrecio,
+                precio = precioVal,
                 organizador_dni = etDniOrganizador.text.toString(),
                 genero_id = generoId,
                 imagen = etImagenUrl.text.toString()
             )
 
-            // Resto del código de actualización...
-
             showLoading(true)
 
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    val response = ApiClient.apiService.updateEvento(eventId, updateRequest)
+                    val response = ApiClient.getApiService(this@EventModifyActivity).updateEvento(eventId, updateRequest)
 
                     withContext(Dispatchers.Main) {
                         showLoading(false)

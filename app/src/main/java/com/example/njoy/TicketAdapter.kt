@@ -14,8 +14,8 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.njoy.DataClasesApi.Event
-import com.example.njoy.DataClasesApi.TicketResponse
+import com.example.njoy.DataClasesApi.EventoDetail
+import com.example.njoy.DataClasesApi.MyTicketResponse
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.journeyapps.barcodescanner.BarcodeEncoder
@@ -23,8 +23,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class TicketAdapter(
-    private val tickets: List<TicketResponse>,
-    private val eventDetails: Map<Int, Event>
+    private val tickets: List<MyTicketResponse>
 ) : RecyclerView.Adapter<TicketAdapter.TicketViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TicketViewHolder {
@@ -36,11 +35,10 @@ class TicketAdapter(
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: TicketViewHolder, position: Int) {
         val ticket = tickets[position]
-        val evento = eventDetails[ticket.evento_id]
-        holder.bind(ticket, evento) { ticketResponse, event ->
+        holder.bind(ticket) { ticketResponse, event ->
             // Implementación para descargar PDF
             Toast.makeText(holder.itemView.context,
-                "Descargando entrada para ${event?.nombre ?: "Evento #${ticketResponse.id}"}",
+                "Descargando entrada para ${event?.nombre ?: "Evento #${ticketResponse.ticket_id}"}",
                 Toast.LENGTH_SHORT).show()
             // Aquí iría el código real para generar y descargar el PDF
         }
@@ -62,12 +60,15 @@ class TicketAdapter(
         private val btnDownloadPdf: Button? = itemView.findViewById(R.id.btnDownloadPdf)
 
         @RequiresApi(Build.VERSION_CODES.O)
-        fun bind(ticket: TicketResponse, evento: Event?, onPdfDownloadClick: (TicketResponse, Event?) -> Unit) {
-            // Código del ticket en formato NJ-ID
-            tvTicketCode.text = "NJ-${ticket.id}"
+        fun bind(ticket: MyTicketResponse, onPdfDownloadClick: (MyTicketResponse, EventoDetail?) -> Unit) {
+            val evento = ticket.evento
+
+            // Código del ticket: Preferir "codigo" (alfanumérico), fallback a ID
+            val displayCode = ticket.codigo ?: "NJ-${ticket.ticket_id}"
+            tvTicketCode.text = displayCode
 
             // Nombre del evento
-            tvEventName.text = evento?.nombre ?: "Evento #${ticket.evento_id}"
+            tvEventName.text = evento?.nombre ?: "Evento desconocido"
 
             // Estado del ticket
             tvTicketType.text = if (ticket.activado) "Entrada Activada" else "Entrada Desactivada"
@@ -75,13 +76,13 @@ class TicketAdapter(
             // Lugar del evento
             tvVenue.text = evento?.recinto ?: "Lugar por confirmar"
 
-            val precio = if (!evento?.categoria_precio.isNullOrEmpty()) {
-                // Añadir el símbolo € si no lo tiene ya
-                if (evento?.categoria_precio?.contains("€") == true) {
-                    evento.categoria_precio
-                } else {
-                    "${evento?.categoria_precio} €"
-                }
+            val p = evento?.precio ?: 0.0
+            val precio = if (p > 0) {
+                 if (p % 1.0 == 0.0) {
+                     "${p.toInt()} €"
+                 } else {
+                     "$p €"
+                 }
             } else {
                 "Consultar"
             }
@@ -106,8 +107,10 @@ class TicketAdapter(
                 ivEventImage.setImageResource(R.drawable.ic_event)
             }
 
-            // Generar código QR con el ID del ticket
-            generateQRCode(ticket.id.toString())
+            // Generar código QR
+            // Si tenemos código alfanumérico, usarlo. Si no, usar ID.
+            val qrContent = ticket.codigo ?: "NJOY-TICKET-${ticket.ticket_id}"
+            generateQRCode(qrContent)
 
             // Configurar el botón de descarga si existe
             btnDownloadPdf?.setOnClickListener {
@@ -150,9 +153,9 @@ class TicketAdapter(
             }
         }
 
-        private fun generateQRCode(ticketId: String) {
+        private fun generateQRCode(content: String) {
             try {
-                val content = "NJOY-TICKET-$ticketId"
+                // val content = "NJOY-TICKET-$ticketId" // REMOVE THIS
                 val multiFormatWriter = MultiFormatWriter()
                 val bitMatrix = multiFormatWriter.encode(
                     content,

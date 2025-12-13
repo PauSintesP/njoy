@@ -53,13 +53,13 @@ class SelectModifyEventActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = ApiClient.apiService.getEventos()
+                val response = ApiClient.getApiService(this@SelectModifyEventActivity).getEventos()
 
                 withContext(Dispatchers.Main) {
                     showLoading(false)
                     if (response.isSuccessful) {
                         val eventos = response.body()
-                        if (!eventos.isNullOrEmpty()) {
+                        if (eventos?.isNotEmpty() == true) {
                             setupRecyclerView(eventos)
                         } else {
                             showEmptyView("No se encontraron eventos.")

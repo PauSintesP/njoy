@@ -68,59 +68,122 @@ class LoginActivity : AppCompatActivity() {
         if (password.isEmpty()) {
             etPassword.error = "La contraseña es requerida"
             isValid = false
-        } else if (password.length < 6) {
-            etPassword.error = "La contraseña debe tener al menos 6 caracteres"
-            isValid = false
         }
 
         return isValid
     }
 
     private fun loginUser(email: String, contrasena: String) {
-        // Verificar si son las credenciales de administrador
-        if (email == "admin@example.com" && contrasena == "12345678") {
-            // Acceso de administrador - redirigir a AdminMainActivity
-            val intent = Intent(this, AdminMainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            finish()
-            return
-        }
-
-        // Si no son credenciales de administrador, continuar con la autenticación normal
         showLoading(true)
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val request = LoginRequest(email, contrasena)
-                val response = ApiClient.apiService.login(request)
+                val apiService = ApiClient.getApiService(this@LoginActivity)
+                val response = apiService.login(request)
 
                 withContext(Dispatchers.Main) {
                     showLoading(false)
 
                     if (response.isSuccessful) {
-                        response.body()?.let { userData ->
-                            // Almacenar datos de sesión
-                            SessionManager.login(
-                                this@LoginActivity,
-                                userData.email,
-                                userData.id,
-                                userData.user
-                            )
-                            Toast.makeText(this@LoginActivity, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show()
-                            startMainActivity()
+                        response.body()?.let { loginData ->
+                            // We have the tokens, now get user data
+                            fetchUserData(loginData.access_token, loginData.refresh_token)
                         } ?: showError("Error: Respuesta inválida del servidor")
                     } else {
-                        showError("Error ${response.code()}: ${response.message()}")
+                        val errorMsg = when (response.code()) {
+                            401 -> "Credenciales incorrectas"
+                            403 -> "Usuario baneado o inactivo"
+                            else -> "Error ${response.code()}: ${response.message()}"
+                        }
+                        showError(errorMsg)
                     }
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
+ withContext(Dispatchers.Main) {
                     showLoading(false)
                     showError("Error de conexión: ${e.message}")
                 }
             }
         }
+    }
+
+    private fun fetchUserData(accessToken: String, refreshToken: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // Temporarily store tokens to make authenticated request
+                SessionManager.login(
+                    this@LoginActivity,
+                    accessToken,
+                    refreshToken,
+                    DataClasesApi.User(
+                        id = 0,
+                        nombre = "",
+                        apellidos = "",
+                        email = "",
+                        fecha_nacimiento = "",
+                        pais = null,
+                        role = "user",
+                        is_active = true,
+                        is_banned = false,
+                        created_at = ""
+                    )
+                )
+
+                val apiService = ApiClient.getApiService(this@LoginActivity)
+                val userResponse = apiService.getCurrentUser()
+
+                withContext(Dispatchers.Main) {
+                    if (userResponse.isSuccessful) {
+                        userResponse.body()?.let { user ->
+                            // Check if user is banned
+                            if (user.is_banned) {
+                                SessionManager.logout(this@LoginActivity)
+                                showError("Tu cuenta ha sido suspendida. Contacta con soporte.")
+                                return@withContext
+                            }
+
+                            // Store complete user data with tokens
+                            SessionManager.login(
+                                this@LoginActivity,
+                                accessToken,
+                                refreshToken,
+                                user
+                            )
+
+                            Toast.makeText(this@LoginActivity, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show()
+
+                            // Navigate based on user role
+                            navigateByRole(user.role)
+                        } ?: showError("Error obteniendo datos del usuario")
+                    } else {
+                        SessionManager.logout(this@LoginActivity)
+                        showError("Error obteniendo perfil de usuario")
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    SessionManager.logout(this@LoginActivity)
+                    showError("Error: ${e.message}")
+                }
+            }
+        }
+    }
+
+    private fun navigateByRole(role: String) {
+        val intent = when (role) {
+            "admin", "owner", "promotor" -> {
+                // Users with event management permissions go to Admin panel
+                Intent(this, AdminMainActivity::class.java)
+            }
+            else -> {
+                // Regular users go to Main activity
+                Intent(this, MainActivity::class.java)
+            }
+        }
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 
     private fun showLoading(show: Boolean) {
@@ -131,12 +194,5 @@ class LoginActivity : AppCompatActivity() {
 
     private fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-    }
-
-    private fun startMainActivity() {
-        val intent = Intent(this, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
-        finish()
     }
 }

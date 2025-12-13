@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/blue_light"
+    android:background="@color/background_dark"
     tools:context=".EscanearActivity">
 
     <!-- Vista para selección de evento -->
@@ -13,57 +13,71 @@
         android:id="@+id/eventSelectionLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="visible">
+        android:visibility="visible"
+        android:background="@color/background_dark">
 
         <TextView
             android:id="@+id/tvSelectEventTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginEnd="16dp"
-            android:text="Selecciona un evento"
-            android:textColor="@color/green_dark"
-            android:textSize="24sp"
-            android:textStyle="bold"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="24dp"
+            android:text="Selecciona evento"
+            android:textColor="@color/white"
+            android:textSize="28sp"
+            android:fontFamily="sans-serif-bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvSelectEventSubtitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="24dp"
+            android:text="Elige el evento para el control de acceso"
+            android:textColor="@color/text_secondary"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvSelectEventTitle" />
 
         <ProgressBar
             android:id="@+id/progressBarEvents"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:indeterminateTint="@color/green_dark"
+            android:layout_marginTop="32dp"
+            android:indeterminateTint="@color/primary"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvSelectEventTitle" />
+            app:layout_constraintTop_toBottomOf="@+id/tvSelectEventSubtitle" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvEvents"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="24dp"
             android:layout_marginEnd="16dp"
-            android:layout_marginBottom="16dp"
             android:clipToPadding="false"
-            android:paddingBottom="16dp"
+            android:paddingBottom="24dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvSelectEventTitle"
-            tools:listitem="@layout/item_event" />
+            app:layout_constraintTop_toBottomOf="@+id/tvSelectEventSubtitle"
+            tools:listitem="@layout/item_event_scan" />
 
         <TextView
             android:id="@+id/tvNoEvents"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="No hay eventos disponibles"
-            android:textColor="@color/text_primary"
-            android:textSize="18sp"
+            android:text="No tienes eventos asignados"
+            android:textColor="@color/text_secondary"
+            android:textSize="16sp"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -72,14 +86,17 @@
 
         <Button
             android:id="@+id/btnBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:backgroundTint="@color/green_dark"
-            android:text="Volver"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="32dp"
+            android:background="@drawable/bg_glass_circle"
+            android:drawableStart="@drawable/ic_back"
+            android:drawableTint="@color/white"
+            android:paddingStart="16dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:visibility="gone"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -90,138 +107,139 @@
         android:layout_height="match_parent"
         android:visibility="gone">
 
-        <TextView
-            android:id="@+id/tvScannerTitle"
-            android:layout_width="0dp"
+        <!-- Full Screen Camera Preview -->
+        <androidx.camera.view.PreviewView
+            android:id="@+id/previewView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- Top Bar with Event Name (Glassmorphism) -->
+        <FrameLayout
+            android:id="@+id/topBar"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginEnd="16dp"
-            android:text="Escaneando entradas para: "
-            android:textColor="@color/green_dark"
-            android:textSize="20sp"
-            android:textStyle="bold"
+            android:layout_margin="24dp"
+            android:background="@drawable/bg_glass_card"
+            android:padding="16dp"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/tvScannerTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ESCANEANDO"
+                    android:textColor="@color/primary"
+                    android:textSize="12sp"
+                    android:letterSpacing="0.2"/>
+
+                <TextView
+                    android:id="@+id/tvEventName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Evento"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:singleLine="true"
+                    android:ellipsize="end"/>
+            </LinearLayout>
+        </FrameLayout>
+
+        <!-- Scan Frame Guide (Visual only) -->
+        <View
+            android:layout_width="280dp"
+            android:layout_height="280dp"
+            android:background="@drawable/bg_scan_frame"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/tvEventName"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:textColor="@color/blue_dark"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvScannerTitle"
-            tools:text="Concierto de ejemplo" />
-
-        <!-- Contenedor para la cámara -->
-        <androidx.camera.view.PreviewView
-            android:id="@+id/previewView"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="200dp"
+            android:layout_marginBottom="100dp"
+            android:text="Apunta el código QR aquí"
+            android:textColor="@color/white_alpha_70"
+            android:background="@drawable/bg_glass_dark"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvEventName" />
+            app:layout_constraintEnd_toEndOf="parent"/>
 
-        <!-- Panel de resultados (inicialmente oculto) -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/resultPanel"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="16dp"
-            app:cardBackgroundColor="@color/white"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp"
-            app:layout_constraintBottom_toTopOf="@+id/btnChangeEvent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/previewView">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="16dp">
-
-                <ImageView
-                    android:id="@+id/ivResultIcon"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:src="@android:drawable/ic_dialog_info"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:tint="@color/green_dark" />
-
-                <TextView
-                    android:id="@+id/tvResultTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:text="Resultado del escaneo"
-                    android:textColor="@color/blue_dark"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/ivResultIcon"
-                    app:layout_constraintTop_toTopOf="@+id/ivResultIcon" />
-
-                <TextView
-                    android:id="@+id/tvResultMessage"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Escanea un código QR de entrada"
-                    android:textColor="@color/text_primary"
-                    android:textSize="16sp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/ivResultIcon" />
-
-                <TextView
-                    android:id="@+id/tvTicketDetails"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvResultMessage" />
-
-                <Button
-                    android:id="@+id/btnScanAgain"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:backgroundTint="@color/green_dark"
-                    android:text="Escanear otra entrada"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-        </androidx.cardview.widget.CardView>
-
+        <!-- Change Event Button -->
         <Button
             android:id="@+id/btnChangeEvent"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="16dp"
-            android:backgroundTint="@color/blue_dark"
-            android:text="Cambiar evento"
+            android:layout_marginBottom="32dp"
+            android:background="@drawable/bg_glass_card"
+            android:text="Cambiar Evento"
+            android:textColor="@color/white"
+            android:paddingHorizontal="24dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- OVERLAY FEEDBACK (Green/Red) -->
+        <FrameLayout
+            android:id="@+id/overlayFeedback"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:clickable="true"
+            android:focusable="true"
+            android:elevation="20dp">
+            
+             <!-- Background dim handled efficiently in code or drawable -->
+            
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="32dp">
+
+                <ImageView
+                    android:id="@+id/ivOverlayIcon"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:src="@drawable/ic_check_circle"
+                    app:tint="@color/white" />
+
+                <TextView
+                    android:id="@+id/tvOverlayTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="ENTRADA VÁLIDA"
+                    android:textColor="@color/white"
+                    android:textSize="28sp"
+                    android:textStyle="bold"
+                    android:gravity="center"/>
+
+                <TextView
+                    android:id="@+id/tvOverlayMessage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Pedro Pascal\nGeneral Ticket"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    android:gravity="center"
+                    android:lineSpacingExtra="4dp"/>
+            </LinearLayout>
+        </FrameLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

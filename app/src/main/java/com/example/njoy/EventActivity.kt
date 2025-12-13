@@ -11,20 +11,15 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.cardview.widget.CardView
 import com.bumptech.glide.Glide
 import com.example.njoy.DataClasesApi.Event
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.DecimalFormat
-import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Locale
-import kotlin.text.format
 
 class EventActivity : BaseActivity() {
 
@@ -101,7 +96,10 @@ class EventActivity : BaseActivity() {
         }
 
         btnIncrease.setOnClickListener {
-            if (::currentEvent.isInitialized && ticketCount < currentEvent.plazas) {
+            val sold = if (::currentEvent.isInitialized) currentEvent.tickets_vendidos ?: 0 else 0
+            val remaining = if (::currentEvent.isInitialized) currentEvent.plazas - sold else 0
+            
+            if (::currentEvent.isInitialized && ticketCount < remaining) {
                 ticketCount++
                 updateTicketCountUI()
             } else {
@@ -111,19 +109,56 @@ class EventActivity : BaseActivity() {
 
         btnBuyTickets.setOnClickListener {
             if (::currentEvent.isInitialized) {
-                if (currentEvent.plazas < ticketCount) {
+                val sold = currentEvent.tickets_vendidos ?: 0
+                val remaining = currentEvent.plazas - sold
+                
+                if (remaining < ticketCount) {
                     Toast.makeText(this, "No hay suficientes entradas disponibles", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
+                
+                showPurchaseConfirmation()
+            }
+        }
+    }
 
-                val totalPrice = pricePerTicket * ticketCount
-                val intent = Intent(this, PaymentMethodActivity::class.java).apply {
-                    putExtra("EVENT_ID", eventId)
-                    putExtra("TICKET_COUNT", ticketCount)
-                    putExtra("TOTAL_AMOUNT", totalPrice)
-                    putExtra("EVENT_NAME", currentEvent.nombre)
+    private fun showPurchaseConfirmation() {
+        val totalPrice = pricePerTicket * ticketCount
+        val dformat = DecimalFormat("0.00")
+        
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Confirmar Compra")
+            .setMessage("¿Deseas comprar $ticketCount entradas por ${dformat.format(totalPrice)}€?")
+            .setPositiveButton("Comprar") { _, _ ->
+                purchaseTickets()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun purchaseTickets() {
+        showLoading(true)
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = ApiClient.getApiService(this@EventActivity).purchaseTickets(eventId, ticketCount)
+                withContext(Dispatchers.Main) {
+                    showLoading(false)
+                    if (response.isSuccessful) {
+                        Toast.makeText(this@EventActivity, "¡Compra realizada con éxito!", Toast.LENGTH_LONG).show()
+                        // Navigate to tickets or finish
+                        val intent = Intent(this@EventActivity, TicketsActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    } else {
+                         val errorBody = response.errorBody()?.string()
+                        Toast.makeText(this@EventActivity, "Error en la compra: ${response.code()} $errorBody", Toast.LENGTH_LONG).show()
+                    }
                 }
-                startActivity(intent)
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    showLoading(false)
+                    Toast.makeText(this@EventActivity, "Error de conexión: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -133,7 +168,7 @@ class EventActivity : BaseActivity() {
         showLoading(true)
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = ApiClient.apiService.getEvento(eventId)
+                val response = ApiClient.getApiService(this@EventActivity).getEvento(eventId)
                 withContext(Dispatchers.Main) {
                     showLoading(false)
                     if (response.isSuccessful && response.body() != null) {
@@ -159,7 +194,7 @@ class EventActivity : BaseActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     private fun displayEventDetails(event: Event) {
         // Cargar imagen
-        if (event.imagen.isNotEmpty()) {
+        if (!event.imagen.isNullOrEmpty()) {
             Glide.with(this)
                 .load(event.imagen)
                 .placeholder(R.drawable.ic_event)
@@ -171,85 +206,76 @@ class EventActivity : BaseActivity() {
         tvEventTitle.text = event.nombre
 
         // Formatear fecha
-        // Formatear fecha
-        val dateTimeOriginal = event.fechayhora // Formato esperado: "2025-07-15T18:00:00"
+        val dateTimeOriginal = event.fechayhora
 
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                // Usar API moderna para Android 8.0+
-                val dateTime = LocalDateTime.parse(dateTimeOriginal)
+            // Usar API moderna para Android 8.0+
+            val dateTime = LocalDateTime.parse(dateTimeOriginal)
 
-                // Formato para fecha: día mes año
-                val dateFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
-                val formattedDate = dateTime.format(dateFormatter)
+            // Formato para fecha: día mes año
+            val dateFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
+            val formattedDate = dateTime.format(dateFormatter)
 
-                // Formato para hora: HH:mm
-                val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-                val formattedTime = dateTime.format(timeFormatter)
+            // Formato para hora: HH:mm
+            val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+            val formattedTime = dateTime.format(timeFormatter)
 
-                // Actualizar TextViews
-                tvEventDate.text = formattedDate
-                tvEventTime.text = formattedTime
-            } else {
-                fallbackDateFormatting(dateTimeOriginal)
-            }
+            // Actualizar TextViews
+            tvEventDate.text = formattedDate
+            tvEventTime.text = formattedTime
         } catch (e: Exception) {
             fallbackDateFormatting(dateTimeOriginal)
             Log.e("EventActivity", "Error al formatear fecha: ${e.message}")
         }
 
-
         CoroutineScope(Dispatchers.IO).launch {
-            val localidadName = fetchLocalidadName(event.localidad_id)
-            withContext(Dispatchers.Main) {
-                tvEventLocation.text = "${event.recinto}, $localidadName"
+            val locationId = event.localidad_id
+            if (locationId != null) {
+                val localidadName = fetchLocalidadName(locationId)
+                withContext(Dispatchers.Main) {
+                    tvEventLocation.text = getString(R.string.event_location_format, event.recinto, localidadName)
+                }
+            } else {
+                withContext(Dispatchers.Main) {
+                    tvEventLocation.text = event.recinto
+                }
             }
         }
-        tvAvailableSeats.text = "Entradas disponibles: ${event.plazas}"
+
+        val ticketsSold = event.tickets_vendidos ?: 0
+        val remaining = event.plazas - ticketsSold
+        
+        tvAvailableSeats.text = "Quedan $remaining entradas"
+        // tvAvailableSeats.text = getString(R.string.available_seats_format, remaining) // Use simple string for now
+
         tvEventDescription.text = event.descripcion
 
-        try {
-            // Convertir directamente el string a Double
-            pricePerTicket = event.categoria_precio.toDouble()
-            Log.d("EventActivity", "Precio obtenido: $pricePerTicket€ de categoria: ${event.categoria_precio}")
-        } catch (e: NumberFormatException) {
-            // Si falla la conversión, intentar limpiar el string
-            Log.e("EventActivity", "Error al convertir precio: ${event.categoria_precio}")
-
-            // Limpiar posibles caracteres no numéricos
-            val cleanedPrice = event.categoria_precio.filter { it.isDigit() || it == '.' || it == ',' }
-                .replace(',', '.')
-
-            try {
-                pricePerTicket = cleanedPrice.toDouble()
-            } catch (e: Exception) {
-                // Si todo falla, mantener un valor por defecto
-                pricePerTicket = 15.0
-                Log.e("EventActivity", "Usando precio por defecto: 15.0€")
-            }
-        }
+            // Usar directamente el precio del evento
+            pricePerTicket = event.precio ?: 0.0
+            Log.d("EventActivity", "Precio obtenido: $pricePerTicket€")
 
         val dformat = DecimalFormat("0.00")
-        tvEventPrice.text = "Precio por persona: ${dformat.format(pricePerTicket)}€"
+        tvEventPrice.text = getString(R.string.price_per_person_format, dformat.format(pricePerTicket))
 
         // Actualizar precio total
         updateTicketCountUI()
 
-        val df = DecimalFormat("0.00")
-        tvEventPrice.text = "Precio por persona: ${df.format(pricePerTicket)}€"
-
-        updateTicketCountUI()
-
-        if (event.plazas <= 1) {
+        if (remaining <= 1) {
             btnIncrease.isEnabled = false
         }
 
-        btnBuyTickets.isEnabled = event.plazas > 0
+        if (remaining <= 0) {
+             btnBuyTickets.isEnabled = false
+             btnBuyTickets.text = "SOLD OUT"
+             btnBuyTickets.alpha = 0.5f
+        } else {
+             btnBuyTickets.isEnabled = true
+        }
     }
 
     private suspend fun fetchLocalidadName(localidadId: Int): String {
         try {
-            val response = ApiClient.apiService.getLocalidad(localidadId)
+            val response = ApiClient.getApiService(this@EventActivity).getLocalidad(localidadId)
             if (response.isSuccessful && response.body() != null) {
                 return response.body()!!.ciudad
             } else {
@@ -267,7 +293,10 @@ class EventActivity : BaseActivity() {
 
         val df = DecimalFormat("0.00")
         val totalPrice = pricePerTicket * ticketCount
-        tvTotalPrice.text = "Precio total: ${df.format(totalPrice)}€"
+        // tvTotalPrice.text = getString(R.string.total_price_format, df.format(totalPrice)) // Old way
+        
+        // New way: Update button text
+        btnBuyTickets.text = "Comprar Entradas - ${df.format(totalPrice)}€"
 
         if (::currentEvent.isInitialized) {
             btnIncrease.isEnabled = ticketCount < currentEvent.plazas
@@ -285,7 +314,6 @@ class EventActivity : BaseActivity() {
             val parts = dateTimeStr.split("T")
 
             if (parts.size == 2) {
-
                 val time = parts[1].substring(0, 5)
                 tvEventTime.text = time
 
@@ -295,10 +323,8 @@ class EventActivity : BaseActivity() {
                     val monthNum = dateParts[1].toInt()
                     val day = dateParts[2]
 
-
                     val months = arrayOf("Ene", "Feb", "Mar", "Abr", "May", "Jun",
                         "Jul", "Ago", "Sep", "Oct", "Nov", "Dic")
-
 
                     val monthName = if (monthNum in 1..12) months[monthNum-1] else "???"
                     val formattedDate = "$day $monthName $year"
@@ -307,11 +333,10 @@ class EventActivity : BaseActivity() {
                     tvEventDate.text = parts[0]
                 }
             } else {
-
                 tvEventDate.text = dateTimeStr
                 tvEventTime.text = ""
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             tvEventDate.text = dateTimeStr
             tvEventTime.text = ""
         }

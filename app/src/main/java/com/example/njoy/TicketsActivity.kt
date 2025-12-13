@@ -25,8 +25,8 @@ class TicketsActivity : BaseActivity() {
     private lateinit var btnAllTickets: Button
     private lateinit var btnActiveTickets: Button
 
-    private var allTickets = listOf<DataClasesApi.TicketResponse>()
-    private val eventDetailsMap = mutableMapOf<Int, Event>()
+    private var allTickets = listOf<DataClasesApi.MyTicketResponse>()
+    // Event details are now embedded in MyTicketResponse, so map is not needed
     private var currentFilter: String = "ALL" // Filtro actual: ALL o ACTIVE
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -84,7 +84,6 @@ class TicketsActivity : BaseActivity() {
     private fun loadTickets() {
         showLoading(true)
 
-        // Obtener el ID del usuario actual
         val userId = SessionManager.getUserId(this)
         if (userId <= 0) {
             showEmptyView("Debes iniciar sesión para ver tus entradas")
@@ -94,27 +93,14 @@ class TicketsActivity : BaseActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Cargar TODOS los tickets y filtrarlos localmente
-                val ticketsResponse = ApiClient.apiService.getTickets()
+                // Use getMyTickets to get tickets with embedded event info and CODES
+                val ticketsResponse = ApiClient.getApiService(this@TicketsActivity).getMyTickets()
 
                 if (ticketsResponse.isSuccessful) {
-                    val allTickets = ticketsResponse.body() ?: emptyList()
-                    // Filtrar por ID de usuario actual
-                    val userTickets = allTickets.filter { it.usuario_id == userId }
-                    this@TicketsActivity.allTickets = userTickets
-
-                    // Cargar detalles de eventos para cada ticket
-                    val eventIds = userTickets.map { it.evento_id }.distinct()
-                    for (eventId in eventIds) {
-                        try {
-                            val eventResponse = ApiClient.apiService.getEvento(eventId)
-                            if (eventResponse.isSuccessful && eventResponse.body() != null) {
-                                eventDetailsMap[eventId] = eventResponse.body()!!
-                            }
-                        } catch (e: Exception) {
-                            // Continuar con el siguiente evento si hay error
-                        }
-                    }
+                    val loadedTickets = ticketsResponse.body() ?: emptyList()
+                    // Filter logic is now server-side implicit (MyTickets returns user tickets)
+                    // We just store them
+                    this@TicketsActivity.allTickets = loadedTickets
 
                     withContext(Dispatchers.Main) {
                         swipeRefreshLayout.isRefreshing = false
@@ -155,7 +141,8 @@ class TicketsActivity : BaseActivity() {
             showEmptyView(message)
         } else {
             hideEmptyView()
-            val adapter = TicketAdapter(filteredTickets, eventDetailsMap)
+            // Support simplified adapter (MyTicketResponse list, no map)
+            val adapter = TicketAdapter(filteredTickets)
             recyclerView.adapter = adapter
         }
     }

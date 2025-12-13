@@ -5,130 +5,149 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/blue_light"
+    android:background="@color/bg_dark"
     tools:context=".LoginActivity">
 
+    <!-- Logo -->
     <ImageView
         android:id="@+id/ivLogo"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_marginTop="24dp"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_marginTop="48dp"
         android:src="@drawable/ic_logo"
+        android:contentDescription="nJoy Logo"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/primary" />
 
+    <!-- Title -->
     <TextView
         android:id="@+id/tvLoginTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:text="Iniciar sesión"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="24dp"
+        android:text="Bienvenido"
         android:textAlignment="center"
-        android:textColor="@color/green_dark"
-        android:textSize="28sp"
+        android:textColor="@color/text_main"
+        android:textSize="32sp"
         android:textStyle="bold"
+        android:fontFamily="sans-serif-medium"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ivLogo" />
 
+    <!-- Subtitle -->
+    <TextView
+        android:id="@+id/tvLoginSubtitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="24dp"
+        android:text="Inicia sesión para continuar"
+        android:textAlignment="center"
+        android:textColor="@color/text_muted"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvLoginTitle" />
+
+    <!-- Form Container -->
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="32dp"
         android:clipToPadding="false"
-        android:paddingBottom="16dp"
+        android:paddingBottom="24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvLoginTitle">
+        app:layout_constraintTop_toBottomOf="@+id/tvLoginSubtitle">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="24dp">
 
+            <!-- Email Input -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/emailInputLayout"
+                style="@style/Widget.NJoy.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:hint="Email"
-                app:boxBackgroundColor="@android:color/transparent"
-                app:boxBackgroundMode="outline"
-                app:boxStrokeColor="@color/green_dark"
-                app:hintTextColor="@color/green_dark"
-                app:shapeAppearanceOverlay="@style/RoundedCorners"
+                app:boxBackgroundColor="@color/bg_card"
                 app:startIconDrawable="@android:drawable/ic_dialog_email"
-                app:startIconTint="@color/green_dark">
+                app:startIconTint="@color/primary">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etEmail"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textEmailAddress"
-                    android:textColor="@color/text_primary"
-                    android:textColorHint="@color/text_secondary" />
+                    android:textColor="@color/text_main"
+                    android:textColorHint="@color/text_muted" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Password Input -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/passwordInputLayout"
+                style="@style/Widget.NJoy.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
                 android:hint="Contraseña"
-                app:boxBackgroundColor="@android:color/transparent"
-                app:boxBackgroundMode="outline"
-                app:boxStrokeColor="@color/green_dark"
-                app:hintTextColor="@color/green_dark"
+                app:boxBackgroundColor="@color/bg_card"
                 app:passwordToggleEnabled="true"
-                app:passwordToggleTint="@color/green_dark"
-                app:shapeAppearanceOverlay="@style/RoundedCorners"
+                app:passwordToggleTint="@color/primary"
                 app:startIconDrawable="@android:drawable/ic_lock_idle_lock"
-                app:startIconTint="@color/green_dark">
+                app:startIconTint="@color/primary">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPassword"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPassword"
-                    android:textColor="@color/text_primary"
-                    android:textColorHint="@color/text_secondary" />
+                    android:textColor="@color/text_main"
+                    android:textColorHint="@color/text_muted" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Login Button with Gradient -->
             <Button
                 android:id="@+id/btnLogin"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:backgroundTint="@color/green"
-                android:paddingVertical="12dp"
+                android:layout_height="56dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/button_gradient"
+                android:elevation="4dp"
+                android:fontFamily="sans-serif-medium"
                 android:text="Iniciar sesión"
-                android:textAllCaps="false"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                android:layout_marginBottom="16dp" />
-
-            <Button
-                android:id="@+id/btnRegister"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:backgroundTint="@color/blue_dark"
-                android:paddingVertical="12dp"
-                android:text="Registrarse"
                 android:textAllCaps="false"
                 android:textColor="@color/white"
                 android:textSize="16sp" />
 
+            <!-- Register Button -->
+            <Button
+                android:id="@+id/btnRegister"
+                style="@style/Widget.NJoy.Button.Outline"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Registrarse"
+                android:textSize="16sp" />
+
+            <!-- Progress Bar -->
             <ProgressBar
                 android:id="@+id/progressBar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="16dp"
-                android:indeterminateTint="@color/green_dark"
+                android:layout_marginTop="24dp"
+                android:indeterminateTint="@color/primary"
                 android:visibility="gone" />
         </LinearLayout>
     </ScrollView>

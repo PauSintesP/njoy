@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_profile"
+            android:icon="@drawable/ic_user"
+            android:title="Mi Perfil" />
+        <item
+            android:id="@+id/nav_my_tickets"
+            android:icon="@drawable/ic_tickets"
+            android:title="Mis Entradas" />
+    </group>
+
+    <item android:title="Gestión" android:id="@+id/menu_management_section">
+        <menu>
+            <item
+                android:id="@+id/nav_my_events"
+                android:icon="@android:drawable/ic_menu_agenda"
+                android:title="Mis Eventos"
+                android:visible="false" />
+            <item
+                android:id="@+id/nav_create_event"
+                android:icon="@android:drawable/ic_input_add"
+                android:title="Crear Evento"
+                android:visible="false" />
+            <item
+                android:id="@+id/nav_scanner"
+                android:icon="@android:drawable/ic_menu_camera"
+                android:title="Scanner"
+                android:visible="false" />
+            <item
+                android:id="@+id/nav_admin_panel"
+                android:icon="@android:drawable/ic_menu_manage"
+                android:title="Panel Admin"
+                android:visible="false" />
+        </menu>
+    </item>
+
+    <item android:title="Cuenta">
+        <menu>
+            <item
+                android:id="@+id/nav_logout"
+                android:icon="@android:drawable/ic_lock_power_off"
+                android:title="Cerrar Sesión" />
+        </menu>
+    </item>
+
+</menu>

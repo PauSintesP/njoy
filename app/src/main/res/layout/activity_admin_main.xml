@@ -3,191 +3,203 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
-    android:backgroundTint="@color/blue_light"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#EFEFEF"
+    android:background="@color/bg_dark"
     tools:context=".AdminMainActivity">
 
+    <!-- Header -->
     <TextView
         android:id="@+id/tvAdminTitle"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="24dp"
+        android:layout_marginEnd="80dp"
         android:text="Panel de Administración"
-        android:textColor="#333333"
-        android:textSize="24sp"
+        android:textColor="@color/text_main"
+        android:textSize="28sp"
         android:textStyle="bold"
+        android:fontFamily="sans-serif-medium"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-    <!-- Añadir después del TextView del título -->
+
+    <!-- Profile Button -->
     <ImageButton
         android:id="@+id/btnProfile"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:layout_marginEnd="16dp"
-        android:background="@drawable/ic_user"
+        android:layout_marginEnd="24dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_user"
         android:contentDescription="Perfil de usuario"
-        android:padding="8dp"
+        android:scaleType="centerInside"
+        android:tint="@color/primary"
         app:layout_constraintBottom_toBottomOf="@+id/tvAdminTitle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/tvAdminTitle" />
+
+    <!-- Admin Cards Grid -->
     <GridLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="32dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:columnCount="2"
-        android:rowCount="3"
+        android:rowCount="2"
         android:useDefaultMargins="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvAdminTitle">
 
-
-
-
-
+        <!-- Create Event Card -->
         <androidx.cardview.widget.CardView
             android:id="@+id/cardCreateEvent"
+            style="@style/Widget.NJoy.Card"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_rowWeight="1"
             android:layout_columnWeight="1"
             android:layout_gravity="fill"
-            app:cardBackgroundColor="#2196F3"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp">
+            app:cardElevation="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:background="@drawable/card_gradient_purple"
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="16dp">
 
                 <ImageView
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
                     android:src="@android:drawable/ic_input_add"
-                    app:tint="#FFFFFF" />
+                    app:tint="@color/white" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="12dp"
                     android:text="Crear Evento"
-                    android:textColor="#FFFFFF"
-                    android:textSize="18sp"
+                    android:textAlignment="center"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- Modify Event Card -->
         <androidx.cardview.widget.CardView
             android:id="@+id/cardModifyEvent"
+            style="@style/Widget.NJoy.Card"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_rowWeight="1"
             android:layout_columnWeight="1"
             android:layout_gravity="fill"
-            app:cardBackgroundColor="#FF9800"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp">
+            app:cardElevation="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:background="@drawable/card_gradient_pink"
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="16dp">
 
                 <ImageView
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
                     android:src="@android:drawable/ic_menu_edit"
-                    app:tint="#FFFFFF" />
+                    app:tint="@color/white" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="12dp"
                     android:text="Modificar Evento"
-                    android:textColor="#FFFFFF"
-                    android:textSize="18sp"
+                    android:textAlignment="center"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- Delete Event Card -->
         <androidx.cardview.widget.CardView
             android:id="@+id/cardDeleteEvent"
+            style="@style/Widget.NJoy.Card"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_rowWeight="1"
             android:layout_columnWeight="1"
             android:layout_gravity="fill"
-            app:cardBackgroundColor="#E91E63"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp">
+            app:cardElevation="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:background="@drawable/card_gradient_red"
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="16dp">
 
                 <ImageView
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
                     android:src="@android:drawable/ic_menu_delete"
-                    app:tint="#FFFFFF" />
+                    app:tint="@color/white" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="12dp"
                     android:text="Eliminar Evento"
-                    android:textColor="#FFFFFF"
-                    android:textSize="18sp"
+                    android:textAlignment="center"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- Scan Tickets Card -->
         <androidx.cardview.widget.CardView
             android:id="@+id/cardScanTickets"
+            style="@style/Widget.NJoy.Card"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_rowWeight="1"
             android:layout_columnWeight="1"
             android:layout_gravity="fill"
-            app:cardBackgroundColor="#673AB7"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp">
+            app:cardElevation="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:background="@drawable/card_gradient_blue"
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="16dp">
 
                 <ImageView
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
                     android:src="@android:drawable/ic_menu_camera"
-                    app:tint="#FFFFFF" />
+                    app:tint="@color/white" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="12dp"
                     android:text="Escanear Entradas"
-                    android:textColor="#FFFFFF"
-                    android:textSize="18sp"
+                    android:textAlignment="center"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>

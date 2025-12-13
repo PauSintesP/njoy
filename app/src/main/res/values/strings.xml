@@ -1,5 +1,18 @@
 <resources>
     <string name="app_name">nJoY</string>
+
+    <!-- Scanner Activity Strings -->
+    <string name="processing_entry">Procesando entrada</string>
+    <string name="verifying_ticket">Verificando validez del ticket…</string>
+    <string name="ready_to_scan">Listo para escanear</string>
+    <string name="scan_qr_instruction">Acerca un código QR de entrada al visor de la cámara</string>
+
+    <!-- Event Activity Strings -->
+    <string name="event_location_format">%1$s, %2$s</string>
+    <string name="available_seats_format">Entradas disponibles: %1$d</string>
+    <string name="price_per_person_format">Precio entrada: %1$s€</string>
+    <string name="total_price_format">Precio total: %1$s€</string>
+
     <string-array name="tipos_evento">
         <item>Concierto</item>
         <item>Festival</item>

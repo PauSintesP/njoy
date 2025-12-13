@@ -1,359 +1,311 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/blue_light"
-    tools:context=".EventCreateActivity">
+    android:background="@color/bg_dark"
+    android:fillViewport="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/main"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:padding="24dp">
 
         <TextView
-            android:id="@+id/tvCreateEventTitle"
-            android:layout_width="0dp"
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Crear Evento"
-            android:textColor="@color/green_dark"
-            android:textSize="24sp"
+            android:text="Crear Nuevo Evento"
+            android:textColor="@color/text_main"
+            android:textSize="28sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/btnBack"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <Button
-            android:id="@+id/btnBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/green_dark"
-            android:text="Volver"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <!-- Nombre del evento -->
+        <!-- General Info Section -->
         <TextView
-            android:id="@+id/tvNombreLabel"
+            android:id="@+id/tvLabelGeneral"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Nombre del evento:"
-            android:textColor="@color/text_primary"
+            android:text="Información General"
+            android:textColor="@color/primary"
+            android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvCreateEventTitle" />
+            app:layout_constraintTop_toBottomOf="@id/tvTitle" />
 
-        <EditText
-            android:id="@+id/etNombreEvento"
-            android:layout_width="0dp"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilNombre"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:background="@drawable/bg_editable_field"
-            android:hint="Ingrese nombre del evento"
-            android:inputType="text"
-            android:padding="12dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvNombreLabel" />
+            android:hint="Nombre del Evento *"
+            app:boxBackgroundColor="@color/bg_card"
+            app:boxStrokeColor="@color/primary"
+            app:hintTextColor="@color/primary"
+            app:layout_constraintTop_toBottomOf="@id/tvLabelGeneral">
 
-        <!-- Descripción -->
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etNombreEvento"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_main"
+                android:inputType="textCapSentences" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilDescripcion"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:hint="Descripción *"
+            app:boxBackgroundColor="@color/bg_card"
+            app:boxStrokeColor="@color/primary"
+            app:layout_constraintTop_toBottomOf="@id/tilNombre">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etDescripcion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="top"
+                android:inputType="textMultiLine"
+                android:lines="4"
+                android:textColor="@color/text_main" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Details Section -->
         <TextView
-            android:id="@+id/tvDescripcionLabel"
+            android:id="@+id/tvLabelDetails"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Descripción:"
-            android:textColor="@color/text_primary"
+            android:layout_marginTop="24dp"
+            android:text="Detalles (Opcional)"
+            android:textColor="@color/primary"
+            android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/etNombreEvento" />
-
-        <EditText
-            android:id="@+id/etDescripcion"
-            android:layout_width="0dp"
-            android:layout_height="120dp"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/bg_editable_field"
-            android:gravity="top"
-            android:hint="Ingrese la descripción del evento"
-            android:inputType="textMultiLine"
-            android:padding="12dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvDescripcionLabel" />
-
-        <!-- Tipo de evento -->
-        <TextView
-            android:id="@+id/tvTipoLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Tipo de evento:"
-            android:textColor="@color/text_primary"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/etDescripcion" />
-
-        <Spinner
-            android:id="@+id/spinnerTipoEvento"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/spinner_background"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvTipoLabel" />
-
-        <!-- Localidad -->
-        <TextView
-            android:id="@+id/tvLocalidadLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Localidad:"
-            android:textColor="@color/text_primary"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/spinnerTipoEvento" />
-
-        <Spinner
-            android:id="@+id/spinnerLocalidad"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/spinner_background"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvLocalidadLabel" />
-
-        <!-- Recinto -->
-        <TextView
-            android:id="@+id/tvRecintoLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Recinto/Lugar:"
-            android:textColor="@color/text_primary"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/spinnerLocalidad" />
-
-        <EditText
-            android:id="@+id/etRecinto"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/bg_editable_field"
-            android:hint="Nombre del recinto o lugar"
-            android:inputType="text"
-            android:padding="12dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvRecintoLabel" />
-
-        <!-- Plazas -->
-        <TextView
-            android:id="@+id/tvPlazasLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Número de plazas:"
-            android:textColor="@color/text_primary"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/etRecinto" />
-
-        <EditText
-            android:id="@+id/etPlazas"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/bg_editable_field"
-            android:hint="Cantidad de plazas disponibles"
-            android:inputType="number"
-            android:padding="12dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvPlazasLabel" />
-
-        <!-- Fecha y Hora -->
-        <TextView
-            android:id="@+id/tvFechaHoraLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Fecha y hora:"
-            android:textColor="@color/text_primary"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/etPlazas" />
+            app:layout_constraintTop_toBottomOf="@id/tilDescripcion" />
 
         <LinearLayout
-            android:id="@+id/layoutFechaHora"
-            android:layout_width="0dp"
+            android:id="@+id/layoutRow1"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvFechaHoraLabel">
+            android:baselineAligned="false"
+            app:layout_constraintTop_toBottomOf="@id/tvLabelDetails">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilRecinto"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:hint="Recinto"
+                app:boxBackgroundColor="@color/bg_card"
+                app:boxStrokeColor="@color/primary">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etRecinto"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_main" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPlazas"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Plazas"
+                app:boxBackgroundColor="@color/bg_card"
+                app:boxStrokeColor="@color/primary">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPlazas"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:textColor="@color/text_main" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <!-- Date & Time Selection -->
+        <LinearLayout
+            android:id="@+id/layoutDateTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/layoutRow1">
 
             <Button
                 android:id="@+id/btnSelectDate"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="4dp"
                 android:layout_weight="1"
-                android:backgroundTint="@color/blue"
-                android:text="Seleccionar Fecha"
-                android:textSize="12sp" />
+                android:layout_marginEnd="8dp"
+                android:text="Fecha"
+                android:textColor="@color/text_main"
+                app:strokeColor="@color/border" />
 
             <Button
                 android:id="@+id/btnSelectTime"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
                 android:layout_weight="1"
-                android:backgroundTint="@color/blue"
-                android:text="Seleccionar Hora"
-                android:textSize="12sp" />
+                android:text="Hora"
+                android:textColor="@color/text_main"
+                app:strokeColor="@color/border" />
         </LinearLayout>
-
+        
         <TextView
             android:id="@+id/tvFechaHoraSelected"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="No seleccionado"
+            android:textColor="@color/text_muted"
+            android:textSize="12sp"
+            android:gravity="center"
+            app:layout_constraintTop_toBottomOf="@id/layoutDateTime"/>
+
+        <!-- Extras Section -->
+         <LinearLayout
+            android:id="@+id/layoutExtras"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@id/tvFechaHoraSelected">
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tipo de Evento"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"/>
+            
+            <Spinner
+                android:id="@+id/spinnerTipoEvento"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/spinner_background"
+                android:layout_marginBottom="12dp"/>
+                
+             <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Localidad"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"/>
+                
+            <Spinner
+                android:id="@+id/spinnerLocalidad"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/spinner_background"
+                android:layout_marginBottom="12dp"/>
+                
+             <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Género"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"/>
+                
+            <Spinner
+                android:id="@+id/spinnerGenero"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/spinner_background"
+                android:layout_marginBottom="12dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Categoría de Precio"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"/>
+                
+            <Spinner
+                android:id="@+id/spinnerPrecio"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/spinner_background"
+                android:layout_marginBottom="12dp"/>
+        </LinearLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilImagen"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:background="@drawable/bg_editable_field"
-            android:padding="12dp"
-            android:text="Fecha/Hora no seleccionada"
-            android:textAlignment="center"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/layoutFechaHora" />
+            android:hint="URL de Imagen (Opcional)"
+            app:boxBackgroundColor="@color/bg_card"
+            app:boxStrokeColor="@color/primary"
+            app:layout_constraintTop_toBottomOf="@id/layoutExtras">
 
-        <!-- Categoría de precio -->
-        <TextView
-            android:id="@+id/tvPrecioLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Categoría de precio:"
-            android:textColor="@color/text_primary"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvFechaHoraSelected" />
-
-        <Spinner
-            android:id="@+id/spinnerPrecio"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/spinner_background"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvPrecioLabel" />
-
-        <!-- Género musical o categoría -->
-        <TextView
-            android:id="@+id/tvGeneroLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Género/Categoría:"
-            android:textColor="@color/text_primary"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/spinnerPrecio" />
-
-        <Spinner
-            android:id="@+id/spinnerGenero"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/spinner_background"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvGeneroLabel" />
-
-        <!-- DNI Organizador -->
-        <TextView
-            android:id="@+id/tvDniLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="DNI del organizador:"
-            android:textColor="@color/text_primary"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/spinnerGenero" />
-
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etImagenUrl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_main" />
+        </com.google.android.material.textfield.TextInputLayout>
+        
+        <!-- Hidden but kept for logic if needed, or remove -->
         <EditText
             android:id="@+id/etDniOrganizador"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/bg_editable_field"
-            android:hint="DNI del organizador"
-            android:inputType="text"
-            android:padding="12dp"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_height="0dp"
+            android:visibility="gone"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvDniLabel" />
+            app:layout_constraintTop_toTopOf="parent"/>
 
-        <!-- URL de la imagen -->
-        <TextView
-            android:id="@+id/tvImagenLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="URL de la imagen:"
-            android:textColor="@color/text_primary"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/etDniOrganizador" />
-
-        <EditText
-            android:id="@+id/etImagenUrl"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/bg_editable_field"
-            android:hint="URL de la imagen del evento"
-            android:inputType="textUri"
-            android:padding="12dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvImagenLabel" />
-
-        <!-- Botón de crear evento -->
         <Button
             android:id="@+id/btnCreateEvent"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
-            android:backgroundTint="@color/green_dark"
-            android:padding="16dp"
-            android:text="CREAR EVENTO"
-            android:textColor="@android:color/white"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/button_gradient"
+            android:text="Crear Evento"
+            android:textColor="@color/white"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tilImagen"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <Button
+            android:id="@+id/btnBack"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancelar"
+            android:textColor="@color/text_secondary"
+            app:layout_constraintTop_toBottomOf="@id/btnCreateEvent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/etImagenUrl" />
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <ProgressBar
             android:id="@+id/progressBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
             android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnCreateEvent" />
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-</ScrollView>
+
+</androidx.core.widget.NestedScrollView>

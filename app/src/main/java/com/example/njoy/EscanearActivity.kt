@@ -24,10 +24,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.njoy.DataClasesApi.Event
 import com.example.njoy.DataClasesApi.TicketRequest
-import com.example.njoy.DataClasesApi.TicketResponse
-import com.google.android.material.snackbar.Snackbar
 import com.google.mlkit.vision.barcode.BarcodeScanning
-import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,21 +47,17 @@ class EscanearActivity : AppCompatActivity() {
     private lateinit var btnBack: Button
     private lateinit var previewView: PreviewView
     private lateinit var tvEventName: TextView
-    private lateinit var resultPanel: View
-    private lateinit var ivResultIcon: ImageView
-    private lateinit var tvResultTitle: TextView
-    private lateinit var tvResultMessage: TextView
-    private lateinit var tvTicketDetails: TextView
-    private lateinit var btnScanAgain: Button
+    private lateinit var overlayFeedback: View
+    private lateinit var ivOverlayIcon: ImageView
+    private lateinit var tvOverlayTitle: TextView
+    private lateinit var tvOverlayMessage: TextView
     private lateinit var btnChangeEvent: Button
-    private lateinit var tvScannerTitle: TextView
-
-    // Variables para la cámara
+    
+    // Variables de control
     private lateinit var cameraExecutor: ExecutorService
     private var cameraProvider: ProcessCameraProvider? = null
-
-    private var selectedEvent: Event? = null
     private var isScanning = false
+    private var selectedEvent: Event? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,14 +80,14 @@ class EscanearActivity : AppCompatActivity() {
         // Vistas para escáner
         scannerLayout = findViewById(R.id.scannerLayout)
         previewView = findViewById(R.id.previewView)
-        tvScannerTitle = findViewById(R.id.tvScannerTitle)
         tvEventName = findViewById(R.id.tvEventName)
-        resultPanel = findViewById(R.id.resultPanel)
-        ivResultIcon = findViewById(R.id.ivResultIcon)
-        tvResultTitle = findViewById(R.id.tvResultTitle)
-        tvResultMessage = findViewById(R.id.tvResultMessage)
-        tvTicketDetails = findViewById(R.id.tvTicketDetails)
-        btnScanAgain = findViewById(R.id.btnScanAgain)
+        
+        // Nuevo Overlay Feedback
+        overlayFeedback = findViewById(R.id.overlayFeedback)
+        ivOverlayIcon = findViewById(R.id.ivOverlayIcon)
+        tvOverlayTitle = findViewById(R.id.tvOverlayTitle)
+        tvOverlayMessage = findViewById(R.id.tvOverlayMessage)
+        
         btnChangeEvent = findViewById(R.id.btnChangeEvent)
 
         // Configurar RecyclerView
@@ -110,10 +103,205 @@ class EscanearActivity : AppCompatActivity() {
             stopCamera()
             showEventSelection()
         }
-
-        btnScanAgain.setOnClickListener {
+        
+        overlayFeedback.setOnClickListener {
+            // Permitir cerrar el overlay manualmente al tocar
             resetScanResults()
         }
+    }
+
+    // --- MÉTODOS DE VALIDACIÓN RECUPERADOS ---
+
+    private fun extractTicketId(barcodeValue: String): Int {
+        return try {
+            if (barcodeValue.startsWith("NJOY-TICKET-")) {
+                barcodeValue.substringAfter("NJOY-TICKET-").toInt()
+            } else {
+                -1
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error extracting ID", e)
+            -1
+        }
+    }
+
+    private fun validateTicket(ticketId: Int) {
+        Log.d(TAG, "Validating by ID: $ticketId")
+        // Enviar el ID directamente al servidor para activar
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // Llamar al endpoint de ACTIVACIÓN (Valida y marca como usado)
+                val response = ApiClient.getApiService(this@EscanearActivity).activateTicket(ticketId)
+                Log.d(TAG, "ActivateTicket Response Code: ${response.code()}")
+
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful && response.body() != null) {
+                        val scanResult = response.body()!!
+                        Log.d(TAG, "ActivateTicket Success Body: $scanResult")
+
+                        if (scanResult.success) {
+                            // Ticket Válido (Verde)
+                            showValidResult(
+                                scanResult.message,
+                                "Asistente: ${scanResult.user_name ?: "Desconocido"}",
+                                "Evento: ${scanResult.event_name ?: "Desconocido"}"
+                            )
+                        } else {
+                            // Ticket Inválido o Ya Usado (Rojo)
+                            showInvalidResult(
+                                scanResult.message,
+                                "ID: $ticketId",
+                                if (scanResult.user_name != null) "Asistente: ${scanResult.user_name}" else ""
+                            )
+                        }
+                    } else {
+                        // Error del servidor (403 Forbidden si no es scanner, 404 si no existe)
+                        Log.e(TAG, "ActivateTicket Error Body: ${response.errorBody()?.string()}")
+                        val errorMsg = when (response.code()) {
+                            403 -> "No tienes permisos de Scanner"
+                            404 -> "Ticket no encontrado en BD (ID: $ticketId)"
+                            else -> "Error del servidor: ${response.code()}"
+                        }
+                        showInvalidResult(
+                            "Error",
+                            errorMsg,
+                            "ID: $ticketId"
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "ActivateTicket Exception", e)
+                withContext(Dispatchers.Main) {
+                    showInvalidResult(
+                        "Error de conexión",
+                        "Error: ${e.message}",
+                        ""
+                    )
+                }
+            }
+        }
+    }
+
+    private fun validateByCode(code: String) {
+        Log.d(TAG, "Validating by CODE: '$code'")
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // Remove potential whitespace/newlines
+                var cleanCode = code.trim()
+                
+                // Intentar parsear JSON si parece un objeto JSON
+                if (cleanCode.startsWith("{") && cleanCode.endsWith("}")) {
+                    try {
+                         val jsonObject = org.json.JSONObject(cleanCode)
+                         if (jsonObject.has("codigo")) {
+                             cleanCode = jsonObject.getString("codigo")
+                             Log.d(TAG, "Extracted code from JSON: '$cleanCode'")
+                         }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing JSON QR", e)
+                        // Fallback: usar el código original (tal vez no era JSON válido)
+                    }
+                }
+
+                Log.d(TAG, "Final Code to Send: '$cleanCode'")
+                
+                // Primero obtenemos información del ticket por código
+                val response = ApiClient.getApiService(this@EscanearActivity).scanTicket(cleanCode)
+                Log.d(TAG, "ScanTicket Response Code: ${response.code()}")
+
+                if (response.isSuccessful && response.body() != null) {
+                    val scanResult = response.body()!!
+                    Log.d(TAG, "ScanTicket Success Body: $scanResult")
+                    
+                    val ticketId = scanResult.ticket?.id ?: scanResult.ticket_id
+                    Log.d(TAG, "Resolved Ticket ID: $ticketId")
+
+                    if (scanResult.success) {
+                         // Ticket Válido y YA ACTIVADO por el backend en este paso.
+                         // NO llamar a validateTicket(id) porque daría error de "ya usado".
+                         withContext(Dispatchers.Main) {
+                            showValidResult(
+                                scanResult.message,
+                                "Asistente: ${scanResult.user_name ?: "Desconocido"}",
+                                "Evento: ${scanResult.event_name ?: "Desconocido"}"
+                            )
+                         }
+                    } else {
+                        // Si ya es inválido o no activo, mostramos el error directamente
+                         withContext(Dispatchers.Main) {
+                            showInvalidResult(
+                                scanResult.message,
+                                "Code: $cleanCode",
+                                "Evento/User: ${scanResult.event_name} / ${scanResult.user_name}"
+                            )
+                         }
+                    }
+                } else {
+                    Log.e(TAG, "ScanTicket Error Body: ${response.errorBody()?.string()}")
+                    withContext(Dispatchers.Main) {
+                        showInvalidResult("Ticket no encontrado", "Código desconocido: $cleanCode", "Error: ${response.code()}")
+                    }
+                }
+            } catch (e: Exception) {
+                 Log.e(TAG, "ScanTicket Exception", e)
+                 withContext(Dispatchers.Main) {
+                    showInvalidResult("Error Conexión", e.message ?: "Unknown", "")
+                 }
+            }
+        }
+    }
+
+    private fun processBarcode(barcodeValue: String) {
+        Log.d(TAG, "Código escaneado: $barcodeValue")
+
+        // 1. Intentar extraer ID del string "NJOY-TICKET-{ID}"
+        val id = extractTicketId(barcodeValue)
+
+        if (id != -1) {
+            validateTicket(id)
+        } else {
+             // 2. Si no es formato ID, intentar validar como código alfanumérico (ej. TQ4XMS...)
+             validateByCode(barcodeValue)
+        }
+    }
+
+    // ...
+
+    private fun showValidResult(title: String, message: String, details: String) {
+        runOnUiThread {
+            overlayFeedback.visibility = View.VISIBLE
+            overlayFeedback.setBackgroundColor(android.graphics.Color.parseColor("#CC00C853")) // Green semi-transparent
+            
+            ivOverlayIcon.setImageResource(R.drawable.ic_check_circle)
+            tvOverlayTitle.text = "ENTRADA VÁLIDA"
+            tvOverlayMessage.text = "$message\n$details"
+            
+            // Auto hide after 2.5 seconds
+            previewView.postDelayed({
+                resetScanResults()
+            }, 2500)
+        }
+    }
+
+    private fun showInvalidResult(title: String, message: String, details: String) {
+        runOnUiThread {
+            overlayFeedback.visibility = View.VISIBLE
+            overlayFeedback.setBackgroundColor(android.graphics.Color.parseColor("#CCD50000")) // Red semi-transparent
+            
+            ivOverlayIcon.setImageResource(android.R.drawable.ic_delete)
+            tvOverlayTitle.text = "ENTRADA INVÁLIDA"
+            tvOverlayMessage.text = "$message\n$details"
+
+            // Auto hide after 3 seconds
+            previewView.postDelayed({
+                resetScanResults()
+            }, 3000)
+        }
+    }
+
+    private fun resetScanResults() {
+        overlayFeedback.visibility = View.GONE
+        isScanning = true
     }
 
     private fun loadEvents() {
@@ -121,23 +309,45 @@ class EscanearActivity : AppCompatActivity() {
         rvEvents.visibility = View.GONE
         tvNoEvents.visibility = View.GONE
 
-        CoroutineScope(Dispatchers.IO).launch {
+    CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = ApiClient.apiService.getEventos()
+                // Fetch both own events (as creator) and team events (as scanner member)
+                val api = ApiClient.getApiService(this@EscanearActivity)
+                
+                // 1. Get My Events (Creator)
+                val myEventsResponse = try {
+                    api.getEventsMine()
+                } catch (e: Exception) {
+                    null
+                }
+                
+                // 2. Get Team Events (Member)
+                val teamEventsResponse = try {
+                    api.getTeamEvents()
+                } catch (e: Exception) {
+                    null
+                }
 
                 withContext(Dispatchers.Main) {
                     progressBarEvents.visibility = View.GONE
 
-                    if (response.isSuccessful && response.body() != null) {
-                        val eventos = response.body()!!
-                        if (eventos.isNotEmpty()) {
-                            setupEventAdapter(eventos)
-                        } else {
-                            showNoEvents("No hay eventos disponibles")
-                        }
+                    val finalEvents = mutableListOf<Event>()
+                    
+                    if (myEventsResponse?.isSuccessful == true && myEventsResponse.body() != null) {
+                         finalEvents.addAll(myEventsResponse.body()!!)
+                    }
+                    
+                    if (teamEventsResponse?.isSuccessful == true && teamEventsResponse.body() != null) {
+                        // Avoid duplicates
+                        val teamEvents = teamEventsResponse.body()!!
+                        val existingIds = finalEvents.map { it.id }.toSet()
+                        finalEvents.addAll(teamEvents.filter { it.id !in existingIds })
+                    }
+
+                    if (finalEvents.isNotEmpty()) {
+                        setupEventAdapter(finalEvents)
                     } else {
-                        showNoEvents("Error al cargar eventos: ${response.code()}")
-                        Log.e(TAG, "Error: ${response.errorBody()?.string()}")
+                        showNoEvents("No tienes eventos asignados para escanear")
                     }
                 }
             } catch (e: Exception) {
@@ -281,178 +491,9 @@ class EscanearActivity : AppCompatActivity() {
         }
     }
 
-    private fun processBarcode(barcodeValue: String) {
-        Log.d(TAG, "Código escaneado: $barcodeValue")
 
-        runOnUiThread {
-            // Mostrar loading
-            resultPanel.visibility = View.VISIBLE
-            ivResultIcon.setImageResource(android.R.drawable.ic_popup_sync)
-            tvResultTitle.text = "Procesando entrada"
-            tvResultMessage.text = "Verificando validez del ticket..."
-            btnScanAgain.visibility = View.GONE
-        }
 
-        // Intentar extraer un ID de ticket
-        try {
-            val ticketId = extractTicketId(barcodeValue)
 
-            if (ticketId > 0) {
-                validateTicket(ticketId)
-            } else {
-                showInvalidResult(
-                    "Formato inválido",
-                    "El código escaneado no corresponde a un ticket válido.",
-                    "Formato detectado: $barcodeValue"
-                )
-            }
-        } catch (e: Exception) {
-            showInvalidResult(
-                "Error de procesamiento",
-                "No se pudo procesar el código: ${e.message}",
-                "Código: $barcodeValue"
-            )
-        }
-    }
-
-    private fun extractTicketId(barcodeValue: String): Int {
-        // Patrón esperado: "ticket:123" o similar
-        val pattern = Regex("NJOY-TICKET-(\\d+)")
-        val matchResult = pattern.find(barcodeValue)
-
-        return matchResult?.groupValues?.getOrNull(1)?.toIntOrNull() ?: -1
-    }
-
-    private fun validateTicket(ticketId: Int) {
-        val eventoId = selectedEvent?.id ?: return
-
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                // 1. Obtener el ticket de la API
-                val ticketResponse = ApiClient.apiService.getTickets()
-
-                if (!ticketResponse.isSuccessful || ticketResponse.body() == null) {
-                    showInvalidResult(
-                        "Error de verificación",
-                        "No se pudo verificar el ticket: ${ticketResponse.code()}",
-                        "ID: $ticketId"
-                    )
-                    return@launch
-                }
-
-                val tickets = ticketResponse.body()!!
-                val ticket = tickets.find { it.id == ticketId }
-
-                if (ticket == null) {
-                    showInvalidResult(
-                        "Ticket no encontrado",
-                        "No existe un ticket con ID $ticketId",
-                        ""
-                    )
-                    return@launch
-                }
-
-                // 2. Verificar que el ticket corresponde al evento
-                if (ticket.evento_id != eventoId) {
-                    showInvalidResult(
-                        "Ticket no válido",
-                        "Este ticket no corresponde a este evento",
-                        "ID Ticket: ${ticket.id}, Evento: ${selectedEvent?.nombre}"
-                    )
-                    return@launch
-                }
-
-                // 3. Verificar si el ticket ya fue utilizado
-                if (!ticket.activado) {
-                    showInvalidResult(
-                        "Ticket ya utilizado",
-                        "Este ticket ya ha sido escaneado anteriormente",
-                        "ID Ticket: ${ticket.id}"
-                    )
-                    return@launch
-                }
-
-                // 4. Activar el ticket
-                val ticketRequest = TicketRequest(
-                    evento_id = ticket.evento_id,
-                    usuario_id = ticket.usuario_id,
-                    activado = false
-                )
-
-                val updateResponse = ApiClient.apiService.updateTicket(ticketId, ticketRequest)
-
-                if (updateResponse.isSuccessful) {
-                    showValidResult(
-                        "Ticket válido",
-                        "Entrada verificada correctamente",
-                        "ID Ticket: ${ticket.id}, Evento: ${selectedEvent?.nombre}"
-                    )
-                } else {
-                    showInvalidResult(
-                        "Error de actualización",
-                        "No se pudo actualizar el estado del ticket: ${updateResponse.code()}",
-                        "ID Ticket: ${ticket.id}"
-                    )
-                }
-
-            } catch (e: Exception) {
-                showInvalidResult(
-                    "Error de conexión",
-                    "No se pudo verificar el ticket: ${e.message}",
-                    ""
-                )
-                Log.e(TAG, "Error validando ticket", e)
-            }
-        }
-    }
-
-    private fun showValidResult(title: String, message: String, details: String) {
-        runOnUiThread {
-            resultPanel.visibility = View.VISIBLE
-            ivResultIcon.setImageResource(android.R.drawable.ic_dialog_info)
-            ivResultIcon.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_green_dark))
-            tvResultTitle.text = title
-            tvResultMessage.text = message
-            tvTicketDetails.text = details
-            tvTicketDetails.visibility = if (details.isNotEmpty()) View.VISIBLE else View.GONE
-            btnScanAgain.visibility = View.GONE
-
-            // Esperar 3 segundos y reiniciar el escaneo automáticamente
-            previewView.postDelayed({
-                resetScanResults()
-            }, 3000)
-        }
-    }
-
-    private fun showInvalidResult(title: String, message: String, details: String) {
-        runOnUiThread {
-            resultPanel.visibility = View.VISIBLE
-            ivResultIcon.setImageResource(android.R.drawable.ic_dialog_alert)
-            ivResultIcon.setColorFilter(ContextCompat.getColor(this, android.R.color.holo_red_dark))
-            tvResultTitle.text = title
-            tvResultMessage.text = message
-            tvTicketDetails.text = details
-            tvTicketDetails.visibility = if (details.isNotEmpty()) View.VISIBLE else View.GONE
-            btnScanAgain.visibility = View.GONE
-
-            // Esperar 3 segundos y reiniciar el escaneo automáticamente
-            previewView.postDelayed({
-                resetScanResults()
-            }, 3000)
-        }
-    }
-
-    private fun resetScanResults() {
-        resultPanel.visibility = View.VISIBLE
-        ivResultIcon.setImageResource(android.R.drawable.ic_menu_camera)
-        ivResultIcon.colorFilter = null
-        tvResultTitle.text = "Listo para escanear"
-        tvResultMessage.text = "Acerca un código QR de entrada al visor de la cámara"
-        tvTicketDetails.text = ""
-        tvTicketDetails.visibility = View.GONE
-        btnScanAgain.visibility = View.GONE // Siempre oculto
-        isScanning = true
-    }
 
     private fun stopCamera() {
         try {
@@ -509,15 +550,18 @@ class EscanearActivity : AppCompatActivity() {
                     event.fechayhora
                 }
 
-                // Cargar imagen con Glide
+                // Cargar imagen con Glide - usar safe call para nullable
                 if (!event.imagen.isNullOrEmpty()) {
                     Glide.with(itemView.context)
                         .load(event.imagen)
                         .placeholder(R.drawable.ic_event)
                         .error(R.drawable.ic_event)
                         .into(ivEventImage)
+                } else {
+                    ivEventImage.setImageResource(R.drawable.ic_event)
                 }
             }
         }
     }
+
 }

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pink gradient for admin cards -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:angle="135"
+        android:startColor="#ec4899"
+        android:endColor="#db2777"
+        android:type="linear" />
+    <corners android:radius="16dp" />
+</shape>

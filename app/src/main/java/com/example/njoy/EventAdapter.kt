@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.njoy.DataClasesApi.Event
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class EventAdapter(
     private val eventos: List<Event>,
@@ -35,60 +36,58 @@ class EventAdapter(
     inner class EventViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val imageView: ImageView = itemView.findViewById(R.id.event_image)
         private val titleView: TextView = itemView.findViewById(R.id.event_title)
-        private val dayView: TextView = itemView.findViewById(R.id.event_day)
-        private val monthView: TextView = itemView.findViewById(R.id.event_month)
-        private val timeView: TextView = itemView.findViewById(R.id.event_time)
+        private val dateView: TextView = itemView.findViewById(R.id.event_date)
         private val locationView: TextView = itemView.findViewById(R.id.event_location)
-        private val availableSeatsView: TextView = itemView.findViewById(R.id.event_available_seats)
         private val priceView: TextView = itemView.findViewById(R.id.event_price)
+        private val badgeView: TextView = itemView.findViewById(R.id.event_badge)
 
         @RequiresApi(Build.VERSION_CODES.O)
         fun bind(event: Event) {
             titleView.text = event.nombre
 
-            // Formatear fecha y hora
+            // Formatear fecha y hora al estilo web: "VIE 26 DIC, 19:47"
             try {
                 val dateTime = LocalDateTime.parse(event.fechayhora)
-                val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-                val dayFormatter = DateTimeFormatter.ofPattern("dd")
-                val monthFormatter = DateTimeFormatter.ofPattern("MMM")
+                val dayOfWeek = dateTime.format(DateTimeFormatter.ofPattern("EEE", Locale("es", "ES"))).uppercase()
+                val day = dateTime.format(DateTimeFormatter.ofPattern("dd"))
+                val month = dateTime.format(DateTimeFormatter.ofPattern("MMM", Locale("es", "ES"))).uppercase()
+                val time = dateTime.format(DateTimeFormatter.ofPattern("HH:mm"))
 
-                // Solo mostrar la hora
-                timeView.text = dateTime.format(timeFormatter)
-
-                dayView.text = dateTime.format(dayFormatter)
-                monthView.text = dateTime.format(monthFormatter).uppercase()
-
+                dateView.text = "$dayOfWeek $day $month, $time"
             } catch (e: Exception) {
                 val parts = event.fechayhora.split("T")
-                timeView.text = if (parts.size > 1) parts[1].substring(0, 5) else "??:??"
+                val time = if (parts.size > 1) parts[1].substring(0, 5) else "??:??"
 
-                // Intentar extraer día y mes del formato YYYY-MM-DD
                 try {
                     val dateParts = parts[0].split("-")
                     if (dateParts.size >= 3) {
-                        dayView.text = dateParts[2] // Día
-
-                        // Convertir número de mes a abreviatura
+                        val day = dateParts[2]
                         val monthNum = dateParts[1].toInt()
                         val months = arrayOf("ENE", "FEB", "MAR", "ABR", "MAY", "JUN",
                             "JUL", "AGO", "SEP", "OCT", "NOV", "DIC")
-                        monthView.text = if (monthNum in 1..12) months[monthNum-1] else "???"
+                        val month = if (monthNum in 1..12) months[monthNum-1] else "???"
+                        dateView.text = "$day $month, $time"
                     } else {
-                        dayView.text = "??"
-                        monthView.text = "???"
+                        dateView.text = event.fechayhora
                     }
                 } catch (e: Exception) {
-                    dayView.text = "??"
-                    monthView.text = "???"
+                    dateView.text = event.fechayhora
                 }
             }
 
-            locationView.text = "Ubicación: ${event.recinto}"
-            availableSeatsView.text = "Entradas Disponibles: ${event.plazas}"
+            // Ubicación con emoji de pin
+            locationView.text = "📍 ${event.recinto}"
 
-            // Mostrar precio real, analizando si es un número o categoría
-            priceView.text = getPriceLabel(event.categoria_precio)
+            // Mostrar precio
+            priceView.text = getPriceLabel(event.precio)
+
+            // Mostrar badge si es un tipo especial de evento
+            if (event.tipo.equals("festival", ignoreCase = true)) {
+                badgeView.visibility = View.VISIBLE
+                badgeView.text = "Festival"
+            } else {
+                badgeView.visibility = View.GONE
+            }
 
             // Cargar imagen
             imageLoader(imageView, event.imagen)
@@ -98,19 +97,12 @@ class EventAdapter(
             }
         }
 
-        private fun getPriceLabel(categoriaPrecio: String): String {
-            return try {
-                // Intentar convertir directamente a número
-                val precio = categoriaPrecio.toDouble()
-                "${precio.toInt()}€"
-            } catch (e: NumberFormatException) {
-                // Si no es un número, usar la lógica anterior de categorías
-                when (categoriaPrecio.lowercase()) {
-                    "bajo" -> "10€"
-                    "medio" -> "20€"
-                    "alto" -> "30€"
-                    else -> "Consultar"
-                }
+        private fun getPriceLabel(precio: Double?): String {
+            val p = precio ?: 0.0
+            return if (p > 0) {
+                if (p % 1.0 == 0.0) "${p.toInt()}€" else "$p€"
+            } else {
+                "Consultar"
             }
         }
     }

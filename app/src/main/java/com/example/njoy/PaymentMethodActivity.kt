@@ -50,11 +50,20 @@ class PaymentMethodActivity : BaseActivity() {
         fetchEventDetails()
     }
 
+    private lateinit var radioVisa: android.widget.RadioButton
+    private lateinit var radioMastercard: android.widget.RadioButton
+    private lateinit var radioPaypal: android.widget.RadioButton
+
     private fun initViews() {
         tvTotalAmount = findViewById(R.id.tvTotalAmount)
         cardVisa = findViewById(R.id.cardVisa)
         cardMastercard = findViewById(R.id.cardMastercard)
         cardPaypal = findViewById(R.id.cardPaypal)
+        
+        radioVisa = findViewById(R.id.radioVisa)
+        radioMastercard = findViewById(R.id.radioMastercard)
+        radioPaypal = findViewById(R.id.radioPaypal)
+        
         btnConfirmPayment = findViewById(R.id.btnConfirmPayment)
         progressBar = findViewById(R.id.progressBar)
     }
@@ -76,15 +85,18 @@ class PaymentMethodActivity : BaseActivity() {
     private fun setupListeners() {
 
         cardVisa.setOnClickListener {
-            selectPaymentMethod("VISA", cardVisa, listOf(cardMastercard, cardPaypal))
+            selectPaymentMethod("VISA", cardVisa, radioVisa, 
+                listOf(Pair(cardMastercard, radioMastercard), Pair(cardPaypal, radioPaypal)))
         }
 
         cardMastercard.setOnClickListener {
-            selectPaymentMethod("MASTERCARD", cardMastercard, listOf(cardVisa, cardPaypal))
+            selectPaymentMethod("MASTERCARD", cardMastercard, radioMastercard,
+                 listOf(Pair(cardVisa, radioVisa), Pair(cardPaypal, radioPaypal)))
         }
 
         cardPaypal.setOnClickListener {
-            selectPaymentMethod("PAYPAL", cardPaypal, listOf(cardVisa, cardMastercard))
+            selectPaymentMethod("PAYPAL", cardPaypal, radioPaypal,
+                listOf(Pair(cardVisa, radioVisa), Pair(cardMastercard, radioMastercard)))
         }
 
         btnConfirmPayment.setOnClickListener {
@@ -97,10 +109,23 @@ class PaymentMethodActivity : BaseActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
-    private fun selectPaymentMethod(method: String, selected: CardView, others: List<CardView>) {
+    private fun selectPaymentMethod(
+        method: String, 
+        selectedCard: CardView, 
+        selectedRadio: android.widget.RadioButton,
+        others: List<Pair<CardView, android.widget.RadioButton>>
+    ) {
         selectedPaymentMethod = method
-        selected.setCardBackgroundColor(getColor(R.color.green))
-        others.forEach { it.setCardBackgroundColor(getColor(android.R.color.white)) }
+        
+        // Select logic using state_selected in drawable
+        selectedCard.isSelected = true
+        selectedRadio.isChecked = true
+        
+        others.forEach { (card, radio) -> 
+            card.isSelected = false 
+            radio.isChecked = false
+        }
+        
         btnConfirmPayment.isEnabled = true
     }
 
@@ -108,7 +133,7 @@ class PaymentMethodActivity : BaseActivity() {
         showLoading(true)
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = ApiClient.apiService.getEvento(eventId)
+                val response = ApiClient.getApiService(this@PaymentMethodActivity).getEvento(eventId)
                 withContext(Dispatchers.Main) {
                     showLoading(false)
                     if (response.isSuccessful && response.body() != null) {
@@ -133,96 +158,67 @@ class PaymentMethodActivity : BaseActivity() {
             return
         }
 
-        // Verificar si hay suficientes plazas disponibles
-        if (currentEvent.plazas < ticketCount) {
-            Toast.makeText(this, "Lo sentimos, solo quedan ${currentEvent.plazas} entradas disponibles", Toast.LENGTH_LONG).show()
-            return
-        }
-
         showPaymentProcessingDialog()
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Lista para almacenar los IDs de los tickets creados
-                val ticketIds = mutableListOf<Int>()
+                // Paso 1: Usar el endpoint de compra (purchaseTickets) que genera códigos y gestiona plazas
+                val purchaseResponse = ApiClient.getApiService(this@PaymentMethodActivity).purchaseTickets(
+                    eventId = eventId,
+                    quantity = ticketCount
+                )
 
-                // Paso 1: Crear los tickets según la cantidad solicitada
-                for (i in 1..ticketCount) {
-                    val ticketRequest = TicketRequest(
-                        evento_id = eventId,
-                        usuario_id = userId,
-                        activado = true
-                    )
-
-                    val ticketResponse = ApiClient.apiService.createTicket(ticketRequest)
-
-                    if (!ticketResponse.isSuccessful || ticketResponse.body() == null) {
-                        withContext(Dispatchers.Main) {
-                            dismissPaymentDialog()
-                            Toast.makeText(this@PaymentMethodActivity,
-                                "Error al crear el ticket ${i}: ${ticketResponse.code()}",
-                                Toast.LENGTH_SHORT).show()
-                        }
-                        return@launch
-                    }
-
-                    // Añadir el ID del ticket creado a la lista
-                    ticketResponse.body()?.id?.let { ticketIds.add(it) }
-                }
-
-                // Paso 2: Registrar un único pago para todos los tickets
-                // Utilizamos el ID del primer ticket para el registro de pago
-                if (ticketIds.isNotEmpty()) {
-                    val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                    val currentDate = dateFormat.format(Date())
-
-                    // Crear un solo pago vinculado al primer ticket
-                    val paymentRequest = PaymentRequest(
-                        usuario_id = userId,
-                        metodo_pago = selectedPaymentMethod,
-                        total = totalAmount, // El monto total para todas las entradas
-                        fecha = currentDate,
-                        ticket_id = ticketIds[0] // Vinculamos con el primer ticket
-                    )
-
-                    val paymentResponse = ApiClient.apiService.registerPayment(paymentRequest)
-
-                    if (!paymentResponse.isSuccessful) {
-                        withContext(Dispatchers.Main) {
-                            dismissPaymentDialog()
-                            Toast.makeText(this@PaymentMethodActivity,
-                                "Error en el proceso de pago: ${paymentResponse.code()}",
-                                Toast.LENGTH_SHORT).show()
-                        }
-                        return@launch
-                    }
-                } else {
+                if (!purchaseResponse.isSuccessful || purchaseResponse.body() == null) {
                     withContext(Dispatchers.Main) {
                         dismissPaymentDialog()
-                        Toast.makeText(this@PaymentMethodActivity,
-                            "Error: No se pudieron crear tickets",
-                            Toast.LENGTH_SHORT).show()
+                        // Mostrar error específico si es 400 (Plazas agotadas)
+                        val errorMsg = if (purchaseResponse.code() == 400) {
+                            "No hay suficientes plazas disponibles"
+                        } else {
+                            "Error al realizar la compra: ${purchaseResponse.code()}"
+                        }
+                        Toast.makeText(this@PaymentMethodActivity, errorMsg, Toast.LENGTH_LONG).show()
                     }
                     return@launch
                 }
 
-                // Paso 3: Actualizar plazas disponibles del evento
-                val updatedEvent = DataClasesApi.EventUpdateRequest.fromEvent(currentEvent).copy(
-                    plazas = currentEvent.plazas - ticketCount
+                val purchaseResult = purchaseResponse.body()!!
+                val createdTickets = purchaseResult.tickets
+
+                if (createdTickets.isEmpty()) {
+                    withContext(Dispatchers.Main) {
+                        dismissPaymentDialog()
+                        Toast.makeText(this@PaymentMethodActivity, "Error: La compra no retornó tickets", Toast.LENGTH_SHORT).show()
+                    }
+                    return@launch
+                }
+
+                // Paso 2: Registrar el pago utilizando el ID del primer ticket
+                val firstTicketId = createdTickets[0].id
+                
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val currentDate = dateFormat.format(Date())
+
+                val paymentRequest = PaymentRequest(
+                    usuario_id = userId,
+                    metodo_pago = selectedPaymentMethod,
+                    total = totalAmount,
+                    fecha = currentDate,
+                    ticket_id = firstTicketId
                 )
 
-                val eventUpdateResponse = ApiClient.apiService.updateEvento(eventId, updatedEvent)
+                val paymentResponse = ApiClient.getApiService(this@PaymentMethodActivity).registerPayment(paymentRequest)
 
                 withContext(Dispatchers.Main) {
-                    if (eventUpdateResponse.isSuccessful) {
-                        // Pago y actualización exitosos
+                    if (paymentResponse.isSuccessful) {
+                        // Pago registrado con éxito
                         updatePaymentDialogSuccess()
                     } else {
-                        // El pago fue exitoso pero falló la actualización de plazas
-                        Toast.makeText(this@PaymentMethodActivity,
-                            "Pago realizado pero hubo un error al actualizar plazas disponibles",
+                        // Compra exitosa pero falló registro de pago (caso borde)
+                        Toast.makeText(this@PaymentMethodActivity, 
+                            "Compra realizada, pero error al registrar pago: ${paymentResponse.code()}", 
                             Toast.LENGTH_LONG).show()
-                        updatePaymentDialogSuccess()
+                        updatePaymentDialogSuccess() // Permitimos ver los tickets igual
                     }
                 }
 

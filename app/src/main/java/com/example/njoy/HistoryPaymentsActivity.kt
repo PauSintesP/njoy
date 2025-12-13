@@ -4,8 +4,8 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -26,7 +26,7 @@ class HistoryPaymentsActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        enableEdgeToEdge()
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(R.layout.activity_history_payments)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -70,7 +70,7 @@ class HistoryPaymentsActivity : BaseActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 // Obtener todos los pagos de la API
-                val response = ApiClient.apiService.getPayments()
+                val response = ApiClient.getApiService(this@HistoryPaymentsActivity).getPayments()
 
                 withContext(Dispatchers.Main) {
                     swipeRefreshLayout.isRefreshing = false
@@ -80,7 +80,7 @@ class HistoryPaymentsActivity : BaseActivity() {
                         val allPayments = response.body() ?: emptyList()
 
                         // Filtrar por ID de usuario
-                        val userPayments = allPayments.filter { it.usuario_id == userId }
+                        val userPayments = allPayments.filter { payment -> payment.usuario_id == userId }
 
                         if (userPayments.isEmpty()) {
                             showEmptyView("No tienes pagos registrados")

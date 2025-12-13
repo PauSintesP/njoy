@@ -1,9 +1,81 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.NJoY" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <!-- Base application theme matching web design -->
+    <style name="Base.Theme.NJoY" parent="Theme.Material3.Dark.NoActionBar">
+        <!-- Primary brand color matching web's purple -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">@color/accent</item>
+        <item name="colorSecondaryVariant">@color/accent</item>
+        <item name="colorOnSecondary">@color/white</item>
+        
+        <!-- Background colors -->
+        <item name="android:colorBackground">@color/bg_dark</item>
+        <item name="colorSurface">@color/bg_card</item>
+        <item name="colorOnSurface">@color/text_main</item>
+        
+        <!-- Status bar -->
+        <item name="android:statusBarColor">@color/bg_dark</item>
+        <item name="android:windowLightStatusBar">false</item>
+        
+        <!-- Navigation bar -->
+        <item name="android:navigationBarColor">@color/bg_dark</item>
     </style>
 
     <style name="Theme.NJoY" parent="Base.Theme.NJoY" />
+    
+    <!-- Button styles matching web gradient buttons -->
+    <style name="Widget.NJoy.Button" parent="Widget.Material3.Button">
+        <item name="cornerRadius">12dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="elevation">4dp</item>
+    </style>
+    
+    <style name="Widget.NJoy.Button.Primary" parent="Widget.NJoy.Button">
+        <item name="backgroundTint">@color/primary</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+    
+    <style name="Widget.NJoy.Button.Outline" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="cornerRadius">12dp</item>
+        <item name="strokeColor">@color/border</item>
+        <item name="android:textColor">@color/text_main</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+    
+    <!-- Estilo para botones tipo chip/pill -->
+    <style name="Widget.NJoy.Button.Chip" parent="Widget.Material3.Button">
+        <item name="cornerRadius">24dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+        <item name="elevation">0dp</item>
+    </style>
+
+    <!-- Card style matching web's glass morphism -->
+    <style name="Widget.NJoy.Card" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardBackgroundColor">@color/bg_card</item>
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeColor">@color/glass_border</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+    
+    <!-- TextInputLayout style -->
+    <style name="Widget.NJoy.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/primary</item>
+        <item name="hintTextColor">@color/primary</item>
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+    </style>
 </resources>

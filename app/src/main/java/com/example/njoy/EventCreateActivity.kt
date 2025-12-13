@@ -3,43 +3,56 @@ package com.example.njoy
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.os.Bundle
+import android.util.Log
 import android.view.View
-import android.widget.*
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.ProgressBar
+import android.widget.Spinner
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.njoy.DataClasesApi.CreateEventRequest
 import com.example.njoy.DataClasesApi.GeneroResponse
 import com.example.njoy.DataClasesApi.LocalidadResponse
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
 
 class EventCreateActivity : AppCompatActivity() {
 
-    // UI components
-    private lateinit var etNombreEvento: EditText
-    private lateinit var etDescripcion: EditText
-    private lateinit var spinnerTipoEvento: Spinner
-    private lateinit var spinnerLocalidad: Spinner
-    private lateinit var etRecinto: EditText
-    private lateinit var etPlazas: EditText
+    // Views
+    private lateinit var etNombreEvento: TextInputEditText
+    private lateinit var etDescripcion: TextInputEditText
+    private lateinit var etRecinto: TextInputEditText
+    private lateinit var etPlazas: TextInputEditText
+    private lateinit var etImagenUrl: TextInputEditText
+    private lateinit var etDniOrganizador: android.widget.EditText // Is it EditText or TextInputEditText? XML says EditText (line 218 in Step 112)
+    
     private lateinit var btnSelectDate: Button
     private lateinit var btnSelectTime: Button
     private lateinit var tvFechaHoraSelected: TextView
-    private lateinit var spinnerPrecio: Spinner
+    
+    private lateinit var spinnerTipoEvento: Spinner
+    private lateinit var spinnerLocalidad: Spinner
     private lateinit var spinnerGenero: Spinner
-    private lateinit var etDniOrganizador: EditText
-    private lateinit var etImagenUrl: EditText
+    private lateinit var spinnerPrecio: Spinner
+    
     private lateinit var btnCreateEvent: Button
     private lateinit var btnBack: Button
     private lateinit var progressBar: ProgressBar
 
-    private val localidades = mutableListOf<LocalidadResponse>()
-    private val generos = mutableListOf<GeneroResponse>()
+    // Data lists
+    private var localidades = mutableListOf<LocalidadResponse>()
+    private var generos = mutableListOf<GeneroResponse>()
 
-    // Fehcha y hora seleccionadas
+    // Date and time selection variables
     private var selectedYear = 0
     private var selectedMonth = 0
     private var selectedDay = 0
@@ -164,7 +177,7 @@ class EventCreateActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = ApiClient.apiService.getLocalidades()
+                val response = ApiClient.getApiService(this@EventCreateActivity).getLocalidades()
 
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful && response.body() != null) {
@@ -200,7 +213,7 @@ class EventCreateActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = ApiClient.apiService.getGeneros()
+                val response = ApiClient.getApiService(this@EventCreateActivity).getGeneros()
 
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful && response.body() != null) {
@@ -288,7 +301,7 @@ class EventCreateActivity : AppCompatActivity() {
 
         // Obtener precio seleccionado (quitar el símbolo €)
         val precioTexto = spinnerPrecio.selectedItem.toString()
-        val categoriaPrecio = precioTexto.replace("€", "").trim()
+        val precioVal = precioTexto.replace("€", "").trim().toDoubleOrNull() ?: 0.0
 
         val fechaHora = String.format(
             "%04d-%02d-%02dT%02d:%02d:00",
@@ -299,7 +312,6 @@ class EventCreateActivity : AppCompatActivity() {
             selectedMinute
         )
 
-
         val eventRequest = CreateEventRequest(
             nombre = etNombreEvento.text.toString().trim(),
             descripcion = etDescripcion.text.toString().trim(),
@@ -308,7 +320,7 @@ class EventCreateActivity : AppCompatActivity() {
             plazas = etPlazas.text.toString().toInt(),
             fechayhora = fechaHora,
             tipo = tipoEvento,
-            categoria_precio = categoriaPrecio,
+            precio = precioVal,
             organizador_dni = etDniOrganizador.text.toString().trim(),
             genero_id = generoId,
             imagen = etImagenUrl.text.toString().trim()
@@ -317,7 +329,7 @@ class EventCreateActivity : AppCompatActivity() {
         // Enviar solicitud a la API
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = ApiClient.apiService.createEvento(eventRequest)
+                val response = ApiClient.getApiService(this@EventCreateActivity).createEvento(eventRequest)
 
                 withContext(Dispatchers.Main) {
                     setLoading(false)

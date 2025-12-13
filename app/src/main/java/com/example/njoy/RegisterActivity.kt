@@ -20,8 +20,8 @@ import java.util.*
 
 class RegisterActivity : AppCompatActivity() {
 
-    private lateinit var etUsername: TextInputEditText
-    private lateinit var etFullName: TextInputEditText
+    private lateinit var etFirstName: TextInputEditText
+    private lateinit var etLastName: TextInputEditText
     private lateinit var etEmail: TextInputEditText
     private lateinit var etBirthDate: TextInputEditText
     private lateinit var etPassword: TextInputEditText
@@ -38,8 +38,8 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun initViews() {
-        etUsername = findViewById(R.id.etUsername)
-        etFullName = findViewById(R.id.etFullName)
+        etFirstName = findViewById(R.id.etUsername)  // Reutilizamos este ID para nombre
+        etLastName = findViewById(R.id.etFullName)  // Reutilizamos para apellidos
         etEmail = findViewById(R.id.etEmail)
         etBirthDate = findViewById(R.id.etBirthDate)
         etPassword = findViewById(R.id.etPassword)
@@ -50,31 +50,27 @@ class RegisterActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         btnRegister.setOnClickListener {
-            val username = etUsername.text.toString().trim()
-            val fullName = etFullName.text.toString().trim()
+            val firstName = etFirstName.text.toString().trim()
+            val lastName = etLastName.text.toString().trim()
             val email = etEmail.text.toString().trim()
             val birthDate = etBirthDate.text.toString().trim()
             val password = etPassword.text.toString().trim()
             val confirmPassword = etConfirmPassword.text.toString().trim()
 
-            if (validateInputs(username, fullName, email, birthDate, password, confirmPassword)) {
-                registerUser(username, fullName, email, birthDate, password)
+            if (validateInputs(firstName, lastName, email, birthDate, password, confirmPassword)) {
+                registerUser(firstName, lastName, email, birthDate, password)
             }
         }
 
-        // Añadir listener para mostrar el DatePicker al hacer clic en el campo
+        // Date picker
         etBirthDate.setOnClickListener {
             showDatePickerDialog()
         }
-
-        // También es buena idea hacer el campo no editable directamente
         etBirthDate.isFocusable = false
     }
 
     private fun showDatePickerDialog() {
         val calendar = Calendar.getInstance()
-
-        // Si ya hay una fecha en el campo, intentar usarla
         val dateString = etBirthDate.text.toString()
         if (dateString.isNotEmpty()) {
             try {
@@ -84,7 +80,7 @@ class RegisterActivity : AppCompatActivity() {
                     calendar.time = date
                 }
             } catch (e: Exception) {
-                // Si hay error de formato, usar fecha actual
+                // Usar fecha actual
             }
         }
 
@@ -95,14 +91,12 @@ class RegisterActivity : AppCompatActivity() {
         val datePickerDialog = DatePickerDialog(
             this,
             { _, selectedYear, selectedMonth, selectedDay ->
-                // Formatear la fecha seleccionada como YYYY-MM-DD
                 val selectedDate = Calendar.getInstance()
                 selectedDate.set(selectedYear, selectedMonth, selectedDay)
 
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 val formattedDate = dateFormat.format(selectedDate.time)
 
-                // Actualizar el campo con la fecha formateada
                 etBirthDate.setText(formattedDate)
             },
             year,
@@ -110,15 +104,13 @@ class RegisterActivity : AppCompatActivity() {
             day
         )
 
-        // Establecer fecha máxima como hoy (para no permitir fechas futuras)
         datePickerDialog.datePicker.maxDate = System.currentTimeMillis()
-
         datePickerDialog.show()
     }
 
     private fun validateInputs(
-        username: String,
-        fullName: String,
+        firstName: String,
+        lastName: String,
         email: String,
         birthDate: String,
         password: String,
@@ -126,16 +118,13 @@ class RegisterActivity : AppCompatActivity() {
     ): Boolean {
         var isValid = true
 
-        if (username.isEmpty()) {
-            etUsername.error = "El nombre de usuario es requerido"
-            isValid = false
-        } else if (username.length < 3) {
-            etUsername.error = "El nombre de usuario debe tener al menos 3 caracteres"
+        if (firstName.isEmpty()) {
+            etFirstName.error = "El nombre es requerido"
             isValid = false
         }
 
-        if (fullName.isEmpty()) {
-            etFullName.error = "El nombre completo es requerido"
+        if (lastName.isEmpty()) {
+            etLastName.error = "Los apellidos son requeridos"
             isValid = false
         }
 
@@ -185,39 +174,46 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
-    private fun registerUser(username: String, fullName: String, email: String, birthDate: String, password: String) {
+    private fun registerUser(
+        nombre: String,
+        apellidos: String,
+        email: String,
+        fechaNacimiento: String,
+        password: String
+    ) {
         showLoading(true)
 
         val registerRequest = RegisterRequest(
-            user = username,
-            ncompleto = fullName,
+            nombre = nombre,
+            apellidos = apellidos,
             email = email,
-            fnacimiento = birthDate,
-            contrasena = password
+            fecha_nacimiento = fechaNacimiento,
+            pais = null,  // Campo opcional, enviamos null
+            contrasena = password,
+            role = "user"  // Default role
         )
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = ApiClient.apiService.register(registerRequest)
+                val apiService = ApiClient.getApiService(this@RegisterActivity)
+                val response = apiService.register(registerRequest)
 
                 withContext(Dispatchers.Main) {
                     showLoading(false)
 
                     if (response.isSuccessful) {
                         response.body()?.let { userData ->
-
-                            SessionManager.login(
-                                this@RegisterActivity,
-                                userData.email,
-                                userData.id,
-                                userData.user
-                            )
-                            Toast.makeText(this@RegisterActivity, "Registro exitoso", Toast.LENGTH_SHORT).show()
-                            startMainActivity()
+                            Toast.makeText(this@RegisterActivity, "Registro exitoso. Por favor, inicia sesión.", Toast.LENGTH_SHORT).show()
+                            // Redirigir al login
+                            val intent = Intent(this@RegisterActivity, LoginActivity::class.java)
+                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            startActivity(intent)
+                            finish()
                         } ?: showError("Error: Respuesta inválida del servidor")
                     } else {
                         when (response.code()) {
-                            409 -> showError("Este usuario o email ya está registrado")
+                            409 -> showError("Este email ya está registrado")
+                            422 -> showError("Datos inválidos. Verifica los campos")
                             else -> showError("Error ${response.code()}: ${response.message()}")
                         }
                     }
@@ -238,12 +234,5 @@ class RegisterActivity : AppCompatActivity() {
 
     private fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-    }
-
-    private fun startMainActivity() {
-        val intent = Intent(this, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
-        finish()
     }
 }

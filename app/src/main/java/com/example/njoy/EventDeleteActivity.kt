@@ -55,13 +55,13 @@ class EventDeleteActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = ApiClient.apiService.getEventos()
+                val response = ApiClient.getApiService(this@EventDeleteActivity).getEventos()
 
                 withContext(Dispatchers.Main) {
                     showLoading(false)
                     if (response.isSuccessful) {
                         val eventos = response.body()
-                        if (!eventos.isNullOrEmpty()) {
+                        if (eventos?.isNotEmpty() == true) {
                             setupRecyclerView(eventos)
                         } else {
                             showEmptyView("No se encontraron eventos.")
@@ -112,7 +112,7 @@ class EventDeleteActivity : AppCompatActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = ApiClient.apiService.deleteEvento(eventId)
+                val response = ApiClient.getApiService(this@EventDeleteActivity).deleteEvento(eventId)
 
                 withContext(Dispatchers.Main) {
                     showLoading(false)
