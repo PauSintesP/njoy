@@ -155,13 +155,13 @@ class TicketAdapter(
 
         private fun generateQRCode(content: String) {
             try {
-                // val content = "NJOY-TICKET-$ticketId" // REMOVE THIS
+                // OPTIMIZED: Simple QR code containing only the ticket code
                 val multiFormatWriter = MultiFormatWriter()
                 val bitMatrix = multiFormatWriter.encode(
                     content,
                     BarcodeFormat.QR_CODE,
-                    300,
-                    300
+                    512,
+                    512
                 )
                 val barcodeEncoder = BarcodeEncoder()
                 val bitmap: Bitmap = barcodeEncoder.createBitmap(bitMatrix)
