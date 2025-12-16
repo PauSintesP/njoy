@@ -63,6 +63,9 @@ class EscanearActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_escanear)
 
+        // Keep screen on while scanning to avoid interruptions
+        window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
         initViews()
         setupListeners()
         loadEvents()

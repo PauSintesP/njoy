@@ -38,7 +38,7 @@ import retrofit2.http.*
 
 object ApiClient {
     // API URL - Production
-    // private const val BASE_URL = "http://192.168.1.132:8000/"
+    //private const val BASE_URL = "http://192.168.18.52:8000/"
     private const val BASE_URL = "https://projecte-n-joy.vercel.app/"
 
     private fun getAuthInterceptor(context: Context): Interceptor {
@@ -240,4 +240,14 @@ interface ApiService {
 
     @PUT("ticket/{id}")
     suspend fun updateTicket(@Path("id") id: Int, @Body request: TicketRequest): Response<TicketResponse>
+
+    // Stats endpoints
+    @POST("evento/{evento_id}/verificar-acceso-estadisticas")
+    suspend fun verifyStatsAccess(
+        @Path("evento_id") eventoId: Int,
+        @Body request: com.example.njoy.model.PasswordVerificationRequest
+    ): Response<com.example.njoy.model.StatsAccessToken>
+
+    @GET("evento/{evento_id}/estadisticas")
+    suspend fun getEventStats(@Path("evento_id") eventoId: Int): Response<com.example.njoy.model.EventStats>
 }
