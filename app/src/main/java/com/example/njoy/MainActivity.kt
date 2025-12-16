@@ -81,6 +81,9 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     private fun setupDrawer() {
         navigationView.setNavigationItemSelectedListener(this)
         
+        // Lock drawer on the right side - only allow opening from left
+        drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED, GravityCompat.END)
+        
         // Setup User Info in Header
         val headerView = navigationView.getHeaderView(0)
         val tvName = headerView.findViewById<TextView>(R.id.tv_nav_header_name)
@@ -121,9 +124,9 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
             drawerLayout.openDrawer(GravityCompat.START)
         }
         
-        // Also open drawer on profile picture click for consistency
+        // Profile button opens ProfileActivity
         findViewById<ImageView>(R.id.iv_user_profile).setOnClickListener {
-             drawerLayout.openDrawer(GravityCompat.START)
+             startActivity(Intent(this, ProfileActivity::class.java))
         }
 
         btnTodos.setOnClickListener { selectCategory("TODOS", btnTodos) }

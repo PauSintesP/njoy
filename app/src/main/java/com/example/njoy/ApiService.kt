@@ -37,9 +37,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 
 object ApiClient {
-    // API URL - Local development (User specific IP)
-    private const val BASE_URL = "http://192.168.1.132:8000/"
-    // private const val BASE_URL = "https://projecte-n-joy.vercel.app/"
+    // API URL - Production
+    // private const val BASE_URL = "http://192.168.1.132:8000/"
+    private const val BASE_URL = "https://projecte-n-joy.vercel.app/"
 
     private fun getAuthInterceptor(context: Context): Interceptor {
         return Interceptor { chain ->

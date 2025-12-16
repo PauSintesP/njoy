@@ -171,16 +171,8 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun navigateByRole(role: String) {
-        val intent = when (role) {
-            "admin", "owner", "promotor" -> {
-                // Users with event management permissions go to Admin panel
-                Intent(this, AdminMainActivity::class.java)
-            }
-            else -> {
-                // Regular users go to Main activity
-                Intent(this, MainActivity::class.java)
-            }
-        }
+        // All users go directly to MainActivity
+        val intent = Intent(this, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()

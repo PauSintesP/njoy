@@ -58,6 +58,7 @@ class TicketAdapter(
         private val ivEventImage: ImageView = itemView.findViewById(R.id.ivEventImage)
         private val ivQrCode: ImageView = itemView.findViewById(R.id.ivQrCode)
         private val btnDownloadPdf: Button? = itemView.findViewById(R.id.btnDownloadPdf)
+        private val btnAddToWallet: Button? = itemView.findViewById(R.id.btnAddToWallet)
 
         @RequiresApi(Build.VERSION_CODES.O)
         fun bind(ticket: MyTicketResponse, onPdfDownloadClick: (MyTicketResponse, EventoDetail?) -> Unit) {
@@ -115,6 +116,13 @@ class TicketAdapter(
             // Configurar el botón de descarga si existe
             btnDownloadPdf?.setOnClickListener {
                 onPdfDownloadClick(ticket, evento)
+            }
+            
+            // Configurar el botón de Google Wallet (placeholder por ahora)
+            btnAddToWallet?.setOnClickListener {
+                Toast.makeText(itemView.context, 
+                    "Función Google Wallet en desarrollo", 
+                    Toast.LENGTH_SHORT).show()
             }
         }
 
