@@ -40,17 +40,15 @@ class EventCreateActivity : AppCompatActivity() {
     private lateinit var tvFechaHoraSelected: TextView
     
     private lateinit var spinnerTipoEvento: Spinner
-    private lateinit var spinnerLocalidad: Spinner
-    private lateinit var spinnerGenero: Spinner
-    private lateinit var spinnerPrecio: Spinner
+    private lateinit var etLocalidad: TextInputEditText
+    private lateinit var etGenero: TextInputEditText
+    private lateinit var etPrecio: TextInputEditText
     
     private lateinit var btnCreateEvent: Button
     private lateinit var btnBack: Button
     private lateinit var progressBar: ProgressBar
 
-    // Data lists
-    private var localidades = mutableListOf<LocalidadResponse>()
-    private var generos = mutableListOf<GeneroResponse>()
+    // No longer need these lists
 
     // Date and time selection variables
     private var selectedYear = 0
@@ -67,8 +65,6 @@ class EventCreateActivity : AppCompatActivity() {
 
         initUI()
         setupSpinners()
-        fetchLocalidades()
-        fetchGeneros()
         setupListeners()
     }
 
@@ -76,14 +72,14 @@ class EventCreateActivity : AppCompatActivity() {
         etNombreEvento = findViewById(R.id.etNombreEvento)
         etDescripcion = findViewById(R.id.etDescripcion)
         spinnerTipoEvento = findViewById(R.id.spinnerTipoEvento)
-        spinnerLocalidad = findViewById(R.id.spinnerLocalidad)
+        etLocalidad = findViewById(R.id.etLocalidad)
         etRecinto = findViewById(R.id.etRecinto)
         etPlazas = findViewById(R.id.etPlazas)
         btnSelectDate = findViewById(R.id.btnSelectDate)
         btnSelectTime = findViewById(R.id.btnSelectTime)
         tvFechaHoraSelected = findViewById(R.id.tvFechaHoraSelected)
-        spinnerPrecio = findViewById(R.id.spinnerPrecio)
-        spinnerGenero = findViewById(R.id.spinnerGenero)
+        etPrecio = findViewById(R.id.etPrecio)
+        etGenero = findViewById(R.id.etGenero)
         etDniOrganizador = findViewById(R.id.etDniOrganizador)
         etImagenUrl = findViewById(R.id.etImagenUrl)
         btnCreateEvent = findViewById(R.id.btnCreateEvent)
@@ -99,16 +95,8 @@ class EventCreateActivity : AppCompatActivity() {
         )
         tipoEventoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerTipoEvento.adapter = tipoEventoAdapter
-
-        val precioCategoriaAdapter = ArrayAdapter.createFromResource(
-            this,
-            R.array.categorias_precio,
-            android.R.layout.simple_spinner_item
-        )
-        precioCategoriaAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerPrecio.adapter = precioCategoriaAdapter
-
     }
+
 
     private fun setupListeners() {
         btnBack.setOnClickListener {
@@ -172,78 +160,6 @@ class EventCreateActivity : AppCompatActivity() {
         }
     }
 
-    private fun fetchLocalidades() {
-        setLoading(true)
-
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val response = ApiClient.getApiService(this@EventCreateActivity).getLocalidades()
-
-                withContext(Dispatchers.Main) {
-                    if (response.isSuccessful && response.body() != null) {
-                        localidades.clear()
-                        localidades.addAll(response.body()!!)
-                        setupLocalidadesSpinner()
-                    } else {
-                        showToast("Error al cargar localidades: ${response.code()}")
-                    }
-                    setLoading(false)
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    showToast("Error de conexión: ${e.message}")
-                    setLoading(false)
-                }
-            }
-        }
-    }
-
-    private fun setupLocalidadesSpinner() {
-        val localidadAdapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_item,
-            localidades.map { "${it.ciudad} (ID: ${it.id})" }
-        )
-        localidadAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerLocalidad.adapter = localidadAdapter
-    }
-
-    private fun fetchGeneros() {
-        setLoading(true)
-
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val response = ApiClient.getApiService(this@EventCreateActivity).getGeneros()
-
-                withContext(Dispatchers.Main) {
-                    if (response.isSuccessful && response.body() != null) {
-                        generos.clear()
-                        generos.addAll(response.body()!!)
-                        setupGenerosSpinner()
-                    } else {
-                        showToast("Error al cargar géneros: ${response.code()}")
-                    }
-                    setLoading(false)
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    showToast("Error de conexión: ${e.message}")
-                    setLoading(false)
-                }
-            }
-        }
-    }
-
-    private fun setupGenerosSpinner() {
-        val generoAdapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_item,
-            generos.map { "${it.nombre} (ID: ${it.id})" }
-        )
-        generoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerGenero.adapter = generoAdapter
-    }
-
     private fun validateFields(): Boolean {
         var isValid = true
 
@@ -257,79 +173,76 @@ class EventCreateActivity : AppCompatActivity() {
             isValid = false
         }
 
-        if (etRecinto.text.toString().trim().isEmpty()) {
-            etRecinto.error = "El recinto es obligatorio"
-            isValid = false
-        }
-
-        if (etPlazas.text.toString().trim().isEmpty()) {
-            etPlazas.error = "Las plazas son obligatorias"
-            isValid = false
-        }
-
-        if (etDniOrganizador.text.toString().trim().isEmpty()) {
-            etDniOrganizador.error = "El DNI es obligatorio"
-            isValid = false
-        }
-
-        if (!isDateSelected || !isTimeSelected) {
-            showToast("Debe seleccionar fecha y hora")
-            isValid = false
-        }
-
+        // All other fields are now optional
         return isValid
     }
 
     private fun createEvent() {
         setLoading(true)
 
-        // Obtener IDs seleccionados
-        val localidadId = if (localidades.isNotEmpty()) {
-            localidades[spinnerLocalidad.selectedItemPosition].id
-        } else {
-            1 // Valor por defecto
-        }
-
-        val generoId = if (generos.isNotEmpty()) {
-            generos[spinnerGenero.selectedItemPosition].id
-        } else {
-            1 // Valor por defecto
-        }
-
-        // Obtener tipo de evento seleccionado
-        val tipoEvento = spinnerTipoEvento.selectedItem.toString()
-
-        // Obtener precio seleccionado (quitar el símbolo €)
-        val precioTexto = spinnerPrecio.selectedItem.toString()
-        val precioVal = precioTexto.replace("€", "").trim().toDoubleOrNull() ?: 0.0
-
-        val fechaHora = String.format(
-            "%04d-%02d-%02dT%02d:%02d:00",
-            selectedYear,
-            selectedMonth + 1,
-            selectedDay,
-            selectedHour,
-            selectedMinute
-        )
-
-        val eventRequest = CreateEventRequest(
-            nombre = etNombreEvento.text.toString().trim(),
-            descripcion = etDescripcion.text.toString().trim(),
-            localidad_id = localidadId,
-            recinto = etRecinto.text.toString().trim(),
-            plazas = etPlazas.text.toString().toInt(),
-            fechayhora = fechaHora,
-            tipo = tipoEvento,
-            precio = precioVal,
-            organizador_dni = etDniOrganizador.text.toString().trim(),
-            genero_id = generoId,
-            imagen = etImagenUrl.text.toString().trim()
-        )
-
-        // Enviar solicitud a la API
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = ApiClient.getApiService(this@EventCreateActivity).createEvento(eventRequest)
+                val apiService = ApiClient.getApiService(this@EventCreateActivity)
+                
+                // Auto-create or get location if specified
+                var localidadId: Int? = null
+                val localidadText = etLocalidad.text.toString().trim()
+                if (localidadText.isNotBlank()) {
+                    try {
+                        val localidad = apiService.createOrGetLocalidad(localidadText)
+                        localidadId = localidad.id
+                    } catch (e: Exception) {
+                        Log.e("EventCreate", "Error creating/getting location", e)
+                    }
+                }
+                
+                // Auto-create or get genre if specified
+                var generoId: Int? = null
+                val generoText = etGenero.text.toString().trim()
+                if (generoText.isNotBlank()) {
+                    try {
+                        val genero = apiService.createOrGetGenero(generoText)
+                        generoId = genero.id
+                    } catch (e: Exception) {
+                        Log.e("EventCreate", "Error creating/getting genre", e)
+                    }
+                }
+
+                // Get tipo de evento
+                val tipoEvento = spinnerTipoEvento.selectedItem.toString()
+                
+                // Get precio from text field
+                val precioVal = etPrecio.text.toString().trim().toDoubleOrNull()
+
+                // Build fecha y hora if selected
+                val fechaHora = if (isDateSelected && isTimeSelected) {
+                    String.format(
+                        "%04d-%02d-%02dT%02d:%02d:00",
+                        selectedYear,
+                        selectedMonth + 1,
+                        selectedDay,
+                        selectedHour,
+                        selectedMinute
+                    )
+                } else {
+                    null
+                }
+
+                val eventRequest = CreateEventRequest(
+                    nombre = etNombreEvento.text.toString().trim(),
+                    descripcion = etDescripcion.text.toString().trim(),
+                    localidad_id = localidadId,
+                    recinto = etRecinto.text.toString().trim().takeIf { it.isNotBlank() },
+                    plazas = etPlazas.text.toString().toIntOrNull(),
+                    fechayhora = fechaHora,
+                    tipo = tipoEvento,
+                    precio = precioVal,
+                    organizador_dni = etDniOrganizador.text.toString().trim().takeIf { it.isNotBlank() },
+                    genero_id = generoId,
+                    imagen = etImagenUrl.text.toString().trim().takeIf { it.isNotBlank() }
+                )
+
+                val response = apiService.createEvento(eventRequest)
 
                 withContext(Dispatchers.Main) {
                     setLoading(false)
@@ -344,6 +257,7 @@ class EventCreateActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     setLoading(false)
+                    Log.e("EventCreate", "Error creating event: ${e.message}", e)
                     showToast("Error: ${e.message}")
                 }
             }

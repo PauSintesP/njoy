@@ -46,6 +46,8 @@
             app:boxBackgroundColor="@color/bg_card"
             app:boxStrokeColor="@color/primary"
             app:hintTextColor="@color/primary"
+            app:startIconDrawable="@drawable/ic_edit"
+            app:startIconTint="@color/primary"
             app:layout_constraintTop_toBottomOf="@id/tvLabelGeneral">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -65,6 +67,8 @@
             android:hint="Descripción *"
             app:boxBackgroundColor="@color/bg_card"
             app:boxStrokeColor="@color/primary"
+            app:startIconDrawable="@drawable/ic_description"
+            app:startIconTint="@color/primary"
             app:layout_constraintTop_toBottomOf="@id/tilNombre">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -108,7 +112,9 @@
                 android:layout_marginEnd="8dp"
                 android:hint="Recinto"
                 app:boxBackgroundColor="@color/bg_card"
-                app:boxStrokeColor="@color/primary">
+                app:boxStrokeColor="@color/primary"
+                app:startIconDrawable="@drawable/ic_location"
+                app:startIconTint="@color/text_muted">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etRecinto"
@@ -125,7 +131,9 @@
                 android:layout_weight="1"
                 android:hint="Plazas"
                 app:boxBackgroundColor="@color/bg_card"
-                app:boxStrokeColor="@color/primary">
+                app:boxStrokeColor="@color/primary"
+                app:startIconDrawable="@drawable/ic_capacity"
+                app:startIconTint="@color/text_muted">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPlazas"
@@ -201,47 +209,74 @@
                 android:background="@drawable/spinner_background"
                 android:layout_marginBottom="12dp"/>
                 
-             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Localidad"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"/>
-                
-            <Spinner
-                android:id="@+id/spinnerLocalidad"
+             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilLocalidad"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:background="@drawable/spinner_background"
-                android:layout_marginBottom="12dp"/>
-                
-             <TextView
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Género"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"/>
-                
-            <Spinner
-                android:id="@+id/spinnerGenero"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:background="@drawable/spinner_background"
-                android:layout_marginBottom="12dp"/>
+                android:hint="Localidad (opcional)"
+                app:boxBackgroundColor="@color/bg_card"
+                app:boxStrokeColor="@color/primary"
+                app:startIconDrawable="@drawable/ic_location"
+                app:startIconTint="@color/primary"
+                app:helperText="Ej: Barcelona, Madrid"
+                app:helperTextTextColor="@color/text_muted"
+                android:layout_marginBottom="12dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Categoría de Precio"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"/>
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etLocalidad"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:textColor="@color/text_main"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
                 
-            <Spinner
-                android:id="@+id/spinnerPrecio"
+             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilGenero"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:background="@drawable/spinner_background"
-                android:layout_marginBottom="12dp"/>
+                android:layout_height="wrap_content"
+                android:hint="Género Musical (opcional)"
+                app:boxBackgroundColor="@color/bg_card"
+                app:boxStrokeColor="@color/primary"
+                app:startIconDrawable="@drawable/ic_music"
+                app:startIconTint="@color/primary"
+                app:helperText="Ej: Rock, Pop, Jazz"
+                app:helperTextTextColor="@color/text_muted"
+                android:layout_marginBottom="12dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etGenero"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:textColor="@color/text_main"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPrecio"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Precio (€, opcional)"
+                app:boxBackgroundColor="@color/bg_card"
+                app:boxStrokeColor="@color/primary"
+                app:startIconDrawable="@drawable/ic_price"
+                app:startIconTint="@color/text_muted"
+                app:helperText="Ej: 25.50"
+                app:helperTextTextColor="@color/text_muted"
+                android:layout_marginBottom="12dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPrecio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal"
+                    android:textColor="@color/text_main"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -253,6 +288,8 @@
             android:hint="URL de Imagen (Opcional)"
             app:boxBackgroundColor="@color/bg_card"
             app:boxStrokeColor="@color/primary"
+            app:startIconDrawable="@drawable/ic_image"
+            app:startIconTint="@color/text_muted"
             app:layout_constraintTop_toBottomOf="@id/layoutExtras">
 
             <com.google.android.material.textfield.TextInputEditText

@@ -166,9 +166,7 @@ interface ApiService {
     @POST("usuario/change-password")
     suspend fun changePassword(@Body request: ChangePasswordRequest): Response<Void>
 
-    // Location endpoints
-    @GET("localidad/")
-    suspend fun getLocalidades(): Response<List<LocalidadResponse>>
+    // Location endpoints - using versions that return List directly (see lines 290-291)
 
     @GET("localidad/{id}")
     suspend fun getLocalidad(@Path("id") id: Int): Response<LocalidadResponse>
@@ -176,9 +174,7 @@ interface ApiService {
     @POST("localidad/")
     suspend fun createLocalidad(@Body ciudad: String): Response<LocalidadResponse>
 
-    // Genre endpoints
-    @GET("genero/")
-    suspend fun getGeneros(): Response<List<GeneroResponse>>
+    // Genre endpoints - using versions that return List directly (see lines 287-288)
 
     @POST("genero/")
     suspend fun createGenero(@Body nombre: String): Response<GeneroResponse>
@@ -250,4 +246,49 @@ interface ApiService {
 
     @GET("evento/{evento_id}/estadisticas")
     suspend fun getEventStats(@Path("evento_id") eventoId: Int): Response<com.example.njoy.model.EventStats>
+
+    // Teams endpoints
+    @GET("teams/my-teams")
+    suspend fun getMyTeams(): List<DataClasesApi.Team>
+
+    @POST("teams/")
+    suspend fun createTeam(@Body request: DataClasesApi.CreateTeamRequest): DataClasesApi.Team
+
+    @DELETE("teams/{team_id}")
+    suspend fun deleteTeam(@Path("team_id") teamId: Int): Response<Unit>
+
+    @GET("teams/{team_id}/members")
+    suspend fun getTeamMembers(@Path("team_id") teamId: Int): List<DataClasesApi.TeamMember>
+
+    @POST("teams/{team_id}/members")
+    suspend fun addTeamMember(
+        @Path("team_id") teamId: Int,
+        @Query("user_email") userEmail: String
+    ): DataClasesApi.TeamMember
+
+    @DELETE("teams/{team_id}/members/{user_id}")
+    suspend fun removeTeamMember(
+        @Path("team_id") teamId: Int,
+        @Path("user_id") userId: Int
+    ): Response<Unit>
+
+    // Event creation with teams
+    @POST("evento/")
+    suspend fun createEventWithTeams(
+        @Body eventData: DataClasesApi.CreateEventRequest,
+        @Query("equipos_ids") equiposIds: List<Int>
+    ): DataClasesApi.Event
+
+    // Helper endpoints for form data
+    @GET("genero/")
+    suspend fun getGeneros(): List<DataClasesApi.GeneroResponse>
+
+    @GET("localidad/")
+    suspend fun getLocalidades(): List<DataClasesApi.LocalidadResponse>
+    
+    @POST("localidad/auto")
+    suspend fun createOrGetLocalidad(@Query("ciudad") ciudad: String): DataClasesApi.LocalidadResponse
+    
+    @POST("genero/auto")
+    suspend fun createOrGetGenero(@Query("nombre") nombre: String): DataClasesApi.GeneroResponse
 }

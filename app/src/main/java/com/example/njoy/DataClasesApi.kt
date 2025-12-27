@@ -85,9 +85,35 @@ class DataClasesApi {
 
     // Genre models
     data class GeneroResponse(
+        val id: Int,
         val nombre: String,
-        val id: Int
+        val cantidad: Int
     )
+
+    // TEAMS MODELS
+    data class Team(
+        val id: Int,
+        val nombre_equipo: String,
+        val descripcion: String?,
+        val leader_id: Int,
+        val created_at: String,
+        val num_miembros: Int?
+    )
+
+    data class CreateTeamRequest(
+        val nombre_equipo: String,
+        val descripcion: String?
+    )
+
+    data class TeamMember(
+        val id: Int,
+        val equipo_id: Int,
+        val usuario_id: Int,
+        val estado: String,  // "pending", "accepted", "rejected"
+        val usuario: User?
+    )
+
+    // CREATE EVENT REQUEST - removed duplicate, see line 249
 
     // Location models
     data class LocalidadResponse(

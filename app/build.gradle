@@ -85,4 +85,7 @@ dependencies {
 
     // ML Kit
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
+    
+    // Charts for statistics
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 }

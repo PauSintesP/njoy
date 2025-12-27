@@ -115,22 +115,20 @@ class EventModifyActivity : AppCompatActivity() {
     private fun fetchLocalidades() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = ApiClient.getApiService(this@EventModifyActivity).getLocalidades()
-                if (response.isSuccessful && response.body() != null) {
-                    localidades.clear()
-                    localidades.addAll(response.body()!!)
+                val localidadesList = ApiClient.getApiService(this@EventModifyActivity).getLocalidades()
+                localidades.clear()
+                localidades.addAll(localidadesList)
 
-                    withContext(Dispatchers.Main) {
-                        val localidadesNombres = localidades.map { it.ciudad }
-                        val adapter = ArrayAdapter(this@EventModifyActivity,
-                            android.R.layout.simple_spinner_item, localidadesNombres)
-                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                        spinnerLocalidad.adapter = adapter
+                withContext(Dispatchers.Main) {
+                    val localidadesNombres = localidades.map { it.ciudad }
+                    val adapter = ArrayAdapter(this@EventModifyActivity,
+                        android.R.layout.simple_spinner_item, localidadesNombres)
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                    spinnerLocalidad.adapter = adapter
 
-                        // Si ya tenemos el evento, seleccionamos la localidad
-                        if (::currentEvent.isInitialized) {
-                            selectLocalidadInSpinner(currentEvent.localidad_id)
-                        }
+                    // Si ya tenemos el evento, seleccionamos la localidad
+                    if (::currentEvent.isInitialized) {
+                        selectLocalidadInSpinner(currentEvent.localidad_id)
                     }
                 }
             } catch (e: Exception) {
@@ -146,22 +144,20 @@ class EventModifyActivity : AppCompatActivity() {
     private fun fetchGeneros() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = ApiClient.getApiService(this@EventModifyActivity).getGeneros()
-                if (response.isSuccessful && response.body() != null) {
-                    generos.clear()
-                    generos.addAll(response.body()!!)
+                val generosList = ApiClient.getApiService(this@EventModifyActivity).getGeneros()
+                generos.clear()
+                generos.addAll(generosList)
 
-                    withContext(Dispatchers.Main) {
-                        val generosNombres = generos.map { it.nombre }
-                        val adapter = ArrayAdapter(this@EventModifyActivity,
-                            android.R.layout.simple_spinner_item, generosNombres)
-                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                        spinnerGenero.adapter = adapter
+                withContext(Dispatchers.Main) {
+                    val generosNombres = generos.map { it.nombre }
+                    val adapter = ArrayAdapter(this@EventModifyActivity,
+                        android.R.layout.simple_spinner_item, generosNombres)
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                    spinnerGenero.adapter = adapter
 
-                        // Si ya tenemos el evento, seleccionamos el género
-                        if (::currentEvent.isInitialized) {
-                            selectGeneroInSpinner(currentEvent.genero_id)
-                        }
+                    // Si ya tenemos el evento, seleccionamos el género
+                    if (::currentEvent.isInitialized) {
+                        selectGeneroInSpinner(currentEvent.genero_id)
                     }
                 }
             } catch (e: Exception) {

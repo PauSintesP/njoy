@@ -11,6 +11,7 @@
     <color name="bg_dark">#0a0a0c</color>
     <color name="bg_card">#16161a</color>
     <color name="bg_card_hover">#1c1c21</color>
+    <color name="bg_input">#1c1c21</color>
     
     <!-- Text Colors -->
     <color name="text_main">#ffffff</color>

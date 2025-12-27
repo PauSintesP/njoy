@@ -110,4 +110,12 @@ object SessionManager {
         editor.putString(KEY_REFRESH_TOKEN, token)
         editor.apply()
     }
+
+    // Update user data (keeps tokens intact)
+    fun updateUser(context: Context, user: DataClasesApi.User) {
+        val editor = getPreferences(context).edit()
+        val gson = Gson()
+        editor.putString(KEY_USER_DATA, gson.toJson(user))
+        editor.apply()
+    }
 }
